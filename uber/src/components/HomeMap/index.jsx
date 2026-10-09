@@ -18,11 +18,12 @@ const HomeMap = () => {
   return (
     <MapView
       style={{ height: "100%", width: "100%" }}
+      showsUserLocation={true}
       initialRegion={{
-        latitude: 40.593,
-        longitude: 29.044,
-        latitudeDelta: 1.8,
-        longitudeDelta: 1.2,
+        latitude: 41.01513,
+        longitude: 28.98953,
+        latitudeDelta: 0.18,
+        longitudeDelta: 0.12,
       }}
     >
       {cars.map((car, index) => (
@@ -33,7 +34,16 @@ const HomeMap = () => {
         >
           <Image
             source={getImage(car.type)}
-            style={{ width: 50, height: 50, resizeMode: "contain" }}
+            style={{
+              width: 50,
+              height: 50,
+              resizeMode: "contain",
+              transform: [
+                {
+                  rotate: `${car.heading}deg`,
+                },
+              ],
+            }}
           />
         </Marker>
       ))}

@@ -12,7 +12,7 @@ export default function UberTypes() {
   return (
     <View>
       {typesData.map((type) => (
-        <UberTypeRow type={type} />
+        <UberTypeRow type={type} key={type.id} />
       ))}
       <Pressable onPress={confirm} style={styles.pressable}>
         <Text style={styles.text}>Confirm Uber</Text>
