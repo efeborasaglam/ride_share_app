@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useState, useEffect } from "react";
 import GooglePlacesAutocomplete from "./PlaceSearch";
 import PlaceRow from "./PlaceRow";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const homePlace = {
   description: "Home",
@@ -16,17 +16,14 @@ const workPlace = {
 };
 const DestinationSearch = () => {
   const navigation = useNavigation();
-
+  const route = useRoute();
   const [originPlace, setOriginPlace] = useState(null);
   const [destinationPlace, setDestinationPlace] = useState(null);
+  const next = route.params?.next ?? "SearchResults";
 
   useEffect(() => {
     if (originPlace && destinationPlace) {
-      console.warn("Redirect to results");
-      navigation.navigate("SearchResults", {
-        originPlace: originPlace,
-        destinationPlace: destinationPlace,
-      });
+      navigation.navigate(next, { originPlace, destinationPlace });
     }
   }, [originPlace, destinationPlace]);
 

@@ -1,6 +1,9 @@
 {
   "expo": {
-    "plugins": ["react-native-maps"],
+    "plugins": [
+      "react-native-maps",
+      "@react-native-community/datetimepicker"
+    ],
     "name": "uber",
     "slug": "uber",
     "version": "1.0.0",

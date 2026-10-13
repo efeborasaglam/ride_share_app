@@ -35,8 +35,8 @@ const RouteMap = ({ origin, destination }) => {
         destination={destinationLoc}
         apiKey={apiKey}
       />
-      <Marker coordinate={originLoc} title={"origin"} />{" "}
-      <Marker coordinate={destinationLoc} title={"destination"} />{" "}
+      <Marker coordinate={originLoc} title={"origin"} />
+      <Marker coordinate={destinationLoc} title={"destination"} />
     </MapView>
   );
 };
