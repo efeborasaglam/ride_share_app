@@ -35,6 +35,8 @@ export const getMyProfile = /* GraphQL */ `
       displayName
       role
       carType
+      verificationStatus
+      verifiedAt
     }
   }
 `;
@@ -46,6 +48,8 @@ export const saveProfile = /* GraphQL */ `
       displayName
       role
       carType
+      verificationStatus
+      verifiedAt
     }
   }
 `;
@@ -67,6 +71,7 @@ export const listMyTrips = /* GraphQL */ `
       destName
       departureAt
       seats
+      seatsLeft
       status
     }
   }
@@ -88,6 +93,7 @@ export const listActiveTrips = /* GraphQL */ `
       routePolyline
       departureAt
       seats
+      seatsLeft
       status
     }
   }
@@ -156,6 +162,99 @@ export const respondToRequest = /* GraphQL */ `
     respondToRequest(id: $id, accept: $accept) {
       id
       status
+    }
+  }
+`;
+
+export const cancelRequest = /* GraphQL */ `
+  mutation CancelRequest($id: ID!) {
+    cancelRequest(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
+export const cancelTrip = /* GraphQL */ `
+  mutation CancelTrip($id: ID!) {
+    cancelTrip(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
+export const listMessages = /* GraphQL */ `
+  query ListMessages($requestId: ID!) {
+    listMessages(requestId: $requestId) {
+      requestId
+      id
+      senderId
+      senderName
+      text
+      createdAt
+    }
+  }
+`;
+
+export const sendMessage = /* GraphQL */ `
+  mutation SendMessage($requestId: ID!, $text: String!) {
+    sendMessage(requestId: $requestId, text: $text) {
+      requestId
+      id
+      senderId
+      senderName
+      text
+      createdAt
+    }
+  }
+`;
+
+export const startVerification = /* GraphQL */ `
+  mutation StartVerification {
+    startVerification {
+      sessionId
+      url
+      status
+    }
+  }
+`;
+
+export const refreshVerification = /* GraphQL */ `
+  mutation RefreshVerification {
+    refreshVerification {
+      id
+      displayName
+      role
+      carType
+      verificationStatus
+      verifiedAt
+    }
+  }
+`;
+
+export const getPublicProfile = /* GraphQL */ `
+  query GetPublicProfile($userId: ID!) {
+    getPublicProfile(userId: $userId) {
+      userId
+      displayName
+      age
+      photoUrl
+      verified
+    }
+  }
+`;
+
+export const setProfileVisibility = /* GraphQL */ `
+  mutation SetProfileVisibility($visible: Boolean!) {
+    setProfileVisibility(visible: $visible) {
+      id
+      displayName
+      role
+      carType
+      verificationStatus
+      verifiedAt
+      profileVisible
     }
   }
 `;

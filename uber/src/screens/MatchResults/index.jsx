@@ -21,6 +21,7 @@ import { listActiveTrips, createRideRequest } from "../../graphql/operations";
 import { matchTrip } from "../../utils/matching";
 import { formatDateTime } from "../../utils/format";
 import { useProfile } from "../../context/ProfileContext";
+import ProfileBadge from "../../components/ProfileBadge";
 
 const client = generateClient();
 const RADIUS_OPTIONS = [5, 10, 20];
@@ -224,15 +225,16 @@ export default function MatchResults() {
               onPress={() => setSelectedId(trip.id)}
               style={[styles.card, trip.id === selectedId && styles.cardActive]}
             >
-              <Text style={styles.driver}>
-                {trip.driverName ?? "Driver"} · {trip.carType}
+              <ProfileBadge userId={trip.driverId} name={trip.driverName} />
+              <Text style={[styles.meta, { marginTop: 6 }]}>
+                {trip.carType}
               </Text>
               <Text style={styles.route} numberOfLines={2}>
                 {trip.originName} → {trip.destName}
               </Text>
               <Text style={styles.meta}>
-                {formatDateTime(trip.departureAt)} · {trip.seats} seat
-                {trip.seats === 1 ? "" : "s"}
+                {formatDateTime(trip.departureAt)} ·{" "}
+                {trip.seatsLeft ?? trip.seats} of {trip.seats} seats left
               </Text>
               <Text style={styles.meta}>
                 Pickup {match.pickupOffKm.toFixed(1)} km from route · Ride about{" "}
@@ -241,19 +243,24 @@ export default function MatchResults() {
               <Pressable
                 style={[
                   styles.button,
-                  requestingId === trip.id && { opacity: 0.4 },
+                  (requestingId === trip.id ||
+                    (trip.seatsLeft ?? trip.seats) < 1) && {
+                    opacity: 0.4,
+                  },
                 ]}
-                disabled={requestingId === trip.id}
-                onPressIn={() => console.log("pressIn")}
-                onPress={() => {
-                  console.log("press");
-                  onRequest(trip);
-                }}
+                disabled={
+                  requestingId === trip.id || (trip.seatsLeft ?? trip.seats) < 1
+                }
+                onPress={() => onRequest(trip)}
               >
                 {requestingId === trip.id ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.buttonText}>Request ride</Text>
+                  <Text style={styles.buttonText}>
+                    {(trip.seatsLeft ?? trip.seats) < 1
+                      ? "Full"
+                      : "Request ride"}
+                  </Text>
                 )}
               </Pressable>
             </Pressable>

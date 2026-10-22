@@ -15,7 +15,7 @@ import {
 } from "aws-amplify/auth";
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState("signIn"); // signIn | signUp | confirm
+  const [mode, setMode] = useState("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");

@@ -10,16 +10,19 @@ import {
 import { generateClient } from "aws-amplify/api";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { listRequestsForMyTrips } from "../../graphql/operations";
-import { formatDateTime } from "../../utils/format";
+import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
+import MenuButton from "../../components/MenuButton";
+import ProfileBadge from "../../components/ProfileBadge";
 
 const client = generateClient();
 
-const STATUS_COLORS = {
-  PENDING: "#ef6c00",
-  ACCEPTED: "#2e7d32",
-  DECLINED: "#c62828",
+const ORDER = {
+  PENDING: 0,
+  ACCEPTED: 1,
+  DECLINED: 2,
+  CANCELLED: 3,
+  CANCELLED_BY_DRIVER: 4,
 };
-const ORDER = { PENDING: 0, ACCEPTED: 1, DECLINED: 2 };
 
 export default function DriverRequests() {
   const navigation = useNavigation();
@@ -63,6 +66,7 @@ export default function DriverRequests() {
         </Pressable>
         <Text style={styles.title}>Requests</Text>
         <Text style={styles.sub}>{pending} waiting for your answer</Text>
+        <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
       <FlatList
@@ -85,17 +89,21 @@ export default function DriverRequests() {
               navigation.navigate("RequestDetails", { request: item })
             }
           >
-            <View style={styles.rowBetween}>
-              <Text style={styles.name}>
-                {item.passengerName ?? "Passenger"}
-              </Text>
+            <View style={[styles.rowBetween, { alignItems: "center" }]}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <ProfileBadge
+                  userId={item.passengerId}
+                  name={item.passengerName}
+                  size={48}
+                />
+              </View>
               <Text
                 style={[
                   styles.status,
                   { color: STATUS_COLORS[item.status] ?? "#555" },
                 ]}
               >
-                {item.status}
+                {statusLabel(item.status)}
               </Text>
             </View>
             <Text style={styles.route} numberOfLines={2}>

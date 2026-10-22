@@ -1,19 +1,37 @@
 import { Text, View, Pressable, Alert } from "react-native";
-import {
-  DrawerContentScrollView,
-  DrawerItemList,
-} from "@react-navigation/drawer";
+import { DrawerContentScrollView } from "@react-navigation/drawer";
 import React from "react";
 import { signOut } from "aws-amplify/auth";
 import { useProfile } from "../context/ProfileContext";
 
+function Item({ label, onPress, color = "#000" }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{ paddingVertical: 14, paddingHorizontal: 16 }}
+    >
+      <Text style={{ fontSize: 16, color }}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function CustomDrawer(props) {
   const { profile, save, openSetup } = useProfile();
   const isDriver = profile?.role === "DRIVER";
+  const verified =
+    profile?.verificationStatus === "APPROVED" && !!profile?.profileVisible;
+  const goVerified = (screen, params) =>
+    verified ? go(screen, params) : go("Verification");
   const targetRole = isDriver ? "PASSENGER" : "DRIVER";
+
+  const go = (screen, params) => {
+    props.navigation.navigate("Home", params ? { screen, params } : { screen });
+    props.navigation.closeDrawer();
+  };
 
   const switchRole = async () => {
     if (targetRole === "DRIVER" && !profile.carType) {
+      props.navigation.closeDrawer();
       openSetup("DRIVER"); // driver needs a car first
       return;
     }
@@ -23,6 +41,7 @@ export default function CustomDrawer(props) {
         role: targetRole,
         carType: profile.carType ?? null,
       });
+      props.navigation.closeDrawer();
     } catch (e) {
       console.log("SWITCH ROLE ERROR:", e.errors ?? e);
       Alert.alert("Error", "Could not switch role. Please try again.");
@@ -40,23 +59,47 @@ export default function CustomDrawer(props) {
         </Text>
       </View>
 
-      <DrawerItemList {...props} />
-
-      <Pressable onPress={switchRole} style={{ padding: 16 }}>
-        <Text style={{ fontSize: 16 }}>
-          Switch to {isDriver ? "passenger" : "driver"} mode
-        </Text>
-      </Pressable>
-
-      {isDriver && (
-        <Pressable onPress={() => openSetup("DRIVER")} style={{ padding: 16 }}>
-          <Text style={{ fontSize: 16 }}>Change car</Text>
-        </Pressable>
+      {isDriver ? (
+        <>
+          <Item label="Home" onPress={() => go("DriverHome")} />
+          <Item
+            label="Offer a ride"
+            onPress={() =>
+              goVerified("DestinationSearch", { next: "TripDetails" })
+            }
+          />
+          <Item label="My trips" onPress={() => go("MyTrips")} />
+          <Item label="Requests" onPress={() => go("DriverRequests")} />
+        </>
+      ) : (
+        <>
+          <Item label="Home" onPress={() => go("PassengerHome")} />
+          <Item
+            label="Find a ride"
+            onPress={() =>
+              goVerified("DestinationSearch", { next: "MatchResults" })
+            }
+          />
+          <Item label="My requests" onPress={() => go("MyRequests")} />
+        </>
       )}
 
-      <Pressable onPress={() => signOut()} style={{ padding: 16 }}>
-        <Text style={{ color: "#c62828", fontSize: 16 }}>Log out</Text>
-      </Pressable>
+      <View style={{ height: 1, backgroundColor: "#ddd", marginVertical: 8 }} />
+      <Item label="Verification" onPress={() => go("Verification")} />
+      <Item
+        label={`Switch to ${isDriver ? "passenger" : "driver"} mode`}
+        onPress={switchRole}
+      />
+      {isDriver && (
+        <Item
+          label="Change car"
+          onPress={() => {
+            props.navigation.closeDrawer();
+            openSetup("DRIVER");
+          }}
+        />
+      )}
+      <Item label="Log out" color="#c62828" onPress={() => signOut()} />
     </DrawerContentScrollView>
   );
 }

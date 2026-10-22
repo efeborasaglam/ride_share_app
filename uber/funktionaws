@@ -1,0 +1,31 @@
+import { util } from '@aws-appsync/utils';
+import * as ddb from '@aws-appsync/utils/dynamodb';
+
+const CARS = ['UberX', 'Comfort', 'UberXL'];
+
+export function request(ctx) {
+  const input = ctx.args.input;
+
+  if (input.seats < 1 || input.seats > 8) {
+    util.error('Seats must be between 1 and 8', 'ValidationError');
+  }
+  if (input.carType && !CARS.includes(input.carType)) {
+    util.error('Invalid car type', 'ValidationError');
+  }
+  const departureMs = util.time.parseISO8601ToEpochMilliSeconds(input.departureAt);
+  if (departureMs < util.time.nowEpochMilliSeconds()) {
+    util.error('Departure must be in the future', 'ValidationError');
+  }
+
+  const item = {
+    ...input,
+    driverId: ctx.identity.sub,
+    status: 'ACTIVE',
+    createdAt: util.time.nowISO8601(),
+  };
+  return ddb.put({ key: { id: util.autoId() }, item });
+}
+
+export function response(ctx) {
+  return ctx.result;
+}

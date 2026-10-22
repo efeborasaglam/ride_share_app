@@ -14,6 +14,13 @@ import { getMyTrip, respondToRequest } from "../../graphql/operations";
 import { matchTrip } from "../../utils/matching";
 import { formatDateTime } from "../../utils/format";
 
+const ANSWERED = {
+  ACCEPTED: "You accepted this request.",
+  DECLINED: "You declined this request.",
+  CANCELLED: "The passenger cancelled this request.",
+  CANCELLED_BY_DRIVER: "You cancelled this trip.",
+};
+
 const client = generateClient();
 
 export default function RequestDetails() {
@@ -175,9 +182,25 @@ export default function RequestDetails() {
             </Pressable>
           </View>
         ) : (
-          <Text style={styles.answered}>
-            You {request.status.toLowerCase()} this request.
-          </Text>
+          <View>
+            <Text style={styles.answered}>
+              {ANSWERED[request.status] ?? request.status}
+            </Text>
+            {request.status === "ACCEPTED" && (
+              <Pressable
+                style={styles.chatBtn}
+                onPress={() =>
+                  navigation.navigate("Chat", {
+                    requestId: request.id,
+                    title: request.passengerName ?? "Passenger",
+                    subtitle: `${request.tripOriginName} → ${request.tripDestName}`,
+                  })
+                }
+              >
+                <Text style={styles.chatBtnText}>Message passenger</Text>
+              </Pressable>
+            )}
+          </View>
         )}
       </View>
     </View>
@@ -219,4 +242,12 @@ const styles = StyleSheet.create({
   },
   acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   answered: { marginTop: 16, fontSize: 16, fontWeight: "600" },
+  chatBtn: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: "#000",
+    alignItems: "center",
+  },
+  chatBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });

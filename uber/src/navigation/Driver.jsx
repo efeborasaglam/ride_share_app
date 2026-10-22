@@ -6,6 +6,8 @@ import TripDetails from "../screens/TripDetails";
 import MyTrips from "../screens/MyTrips";
 import DriverRequests from "../screens/DriverRequests";
 import RequestDetails from "../screens/RequestDetails";
+import Chat from "../screens/Chat";
+import Verification from "../screens/Verification";
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +23,8 @@ export default function DriverNavigator() {
       <Stack.Screen name="MyTrips" component={MyTrips} />
       <Stack.Screen name="DriverRequests" component={DriverRequests} />
       <Stack.Screen name="RequestDetails" component={RequestDetails} />
+      <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="Verification" component={Verification} />
     </Stack.Navigator>
   );
 }

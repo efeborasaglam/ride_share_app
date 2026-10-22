@@ -42,7 +42,7 @@ export function ProfileProvider({ children }) {
       query: saveProfile,
       variables: { input },
     });
-    setProfile(res.data.saveProfile);
+    setProfile((prev) => ({ ...prev, ...res.data.saveProfile }));
     return res.data.saveProfile;
   };
 
@@ -57,6 +57,7 @@ export function ProfileProvider({ children }) {
         setupRole,
         openSetup: (role) => setSetupRole(role),
         closeSetup: () => setSetupRole(null),
+        applyProfile: setProfile,
       }}
     >
       {children}
