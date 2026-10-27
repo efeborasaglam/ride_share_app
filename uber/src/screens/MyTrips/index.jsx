@@ -145,7 +145,9 @@ export default function MyTrips() {
               <Text style={styles.meta}>
                 {item.carType} · {item.seatsLeft} of {item.seats} seats left
               </Text>
-
+              <Text style={styles.meta}>
+                {formatPrice(item.priceCents, item.currency)} per seat
+              </Text>
               {item.status === "ACTIVE" && info.pending > 0 && (
                 <Pressable
                   onPress={() => navigation.navigate("DriverRequests")}

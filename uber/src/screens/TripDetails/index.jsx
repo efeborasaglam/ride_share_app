@@ -56,6 +56,11 @@ export default function TripDetails() {
   const [date, setDate] = useState(defaultDeparture());
   const [seats, setSeats] = useState(3);
   const [publishing, setPublishing] = useState(false);
+  const [priceText, setPriceText] = useState("5.00");
+  const priceCents = Math.round(parseFloat(priceText.replace(",", ".")) * 100);
+  const priceValid =
+    Number.isFinite(priceCents) && priceCents >= 100 && priceCents <= 10000;
+  const split = priceValid ? splitPrice(priceCents) : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -230,6 +235,27 @@ export default function TripDetails() {
           </View>
         </View>
 
+        <View style={styles.row}>
+          <Text style={styles.label}>Price per seat (CHF)</Text>
+          <TextInput
+            style={styles.priceInput}
+            value={priceText}
+            onChangeText={setPriceText}
+            keyboardType="decimal-pad"
+            maxLength={7}
+          />
+        </View>
+        {split ? (
+          <Text style={styles.meta}>
+            You receive {formatPrice(split.driver)} · platform fee{" "}
+            {formatPrice(split.fee)} (20%)
+          </Text>
+        ) : (
+          <Text style={styles.error}>
+            Enter a price between 1.00 and 100.00
+          </Text>
+        )}
+
         <Pressable
           style={[
             styles.button,
@@ -291,4 +317,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  priceInput: {
+    backgroundColor: "#eee",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 90,
+    textAlign: "right",
+    fontSize: 16,
+  },
 });

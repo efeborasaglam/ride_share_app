@@ -237,6 +237,9 @@ export default function MatchResults() {
                 {trip.seatsLeft ?? trip.seats} of {trip.seats} seats left
               </Text>
               <Text style={styles.meta}>
+                {formatPrice(item.priceCents, item.currency)} per seat
+              </Text>
+              <Text style={styles.meta}>
                 Pickup {match.pickupOffKm.toFixed(1)} km from route · Ride about{" "}
                 {Math.round(match.rideKm)} km
               </Text>

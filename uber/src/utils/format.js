@@ -49,3 +49,15 @@ export function formatTime(input) {
 }
 
 export const statusLabel = (status) => STATUS_LABELS[status] ?? status;
+
+export const FEE_RATE = 0.2;
+
+export function formatPrice(cents, currency = "chf") {
+  if (cents == null) return "";
+  return `${(cents / 100).toFixed(2)} ${String(currency).toUpperCase()}`;
+}
+
+export function splitPrice(cents) {
+  const fee = Math.round(cents * FEE_RATE);
+  return { fee, driver: cents - fee };
+}

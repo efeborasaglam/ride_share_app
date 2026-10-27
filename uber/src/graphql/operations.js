@@ -258,3 +258,26 @@ export const setProfileVisibility = /* GraphQL */ `
     }
   }
 `;
+
+export const startPayoutOnboarding = /* GraphQL */ `
+  mutation StartPayoutOnboarding($email: String) {
+    startPayoutOnboarding(email: $email) {
+      url
+    }
+  }
+`;
+
+export const refreshPayoutStatus = /* GraphQL */ `
+  mutation RefreshPayoutStatus {
+    refreshPayoutStatus {
+      id
+      displayName
+      role
+      carType
+      verificationStatus
+      verifiedAt
+      profileVisible
+      payoutsReady
+    }
+  }
+`;

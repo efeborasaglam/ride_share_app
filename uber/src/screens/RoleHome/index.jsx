@@ -13,18 +13,27 @@ export default function RoleHome() {
   const ready = verified && !!profile.profileVisible;
 
   const goVerified = (screen, params) => {
-    if (!ready) {
+    if (!verified) {
       Alert.alert(
-        verified ? "Show your profile" : "Verification required",
-        verified
-          ? "To ride with others, they need to see who you are. Turn on “Show my photo and age” in your verification profile."
-          : `Please verify your identity before you ${isDriver ? "offer" : "request"} rides.`,
+        "Verification required",
+        `Please verify your identity before you ${isDriver ? "offer" : "request"} rides.`,
         [
           { text: "Later", style: "cancel" },
           {
-            text: verified ? "Open profile" : "Verify now",
+            text: "Verify now",
             onPress: () => navigation.navigate("Verification"),
           },
+        ],
+      );
+      return;
+    }
+    if (isDriver && !profile.payoutsReady) {
+      Alert.alert(
+        "Set up payouts",
+        "To offer rides you need a payout account.",
+        [
+          { text: "Later", style: "cancel" },
+          { text: "Set up", onPress: () => navigation.navigate("Payouts") },
         ],
       );
       return;

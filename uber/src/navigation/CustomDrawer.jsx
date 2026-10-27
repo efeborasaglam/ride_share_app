@@ -70,6 +70,7 @@ export default function CustomDrawer(props) {
           />
           <Item label="My trips" onPress={() => go("MyTrips")} />
           <Item label="Requests" onPress={() => go("DriverRequests")} />
+          <Item label="Payouts" onPress={() => go("Payouts")} />
         </>
       ) : (
         <>
