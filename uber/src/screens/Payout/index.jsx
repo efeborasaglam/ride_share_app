@@ -32,11 +32,7 @@ export default function Payouts() {
     async (silent = false) => {
       setChecking(true);
       try {
-        const attrs = await fetchUserAttributes();
-        const res = await client.graphql({
-          query: startPayoutOnboarding,
-          variables: { email: attrs.email },
-        });
+        const res = await client.graphql({ query: refreshPayoutStatus });
         applyProfile((prev) => ({ ...prev, ...res.data.refreshPayoutStatus }));
       } catch (e) {
         console.log("REFRESH PAYOUT ERROR:", e.errors ?? e);
@@ -53,16 +49,14 @@ export default function Payouts() {
     [applyProfile],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!ready) refresh(true);
-    }, [ready, refresh]),
-  );
-
   const onStart = async () => {
     setBusy(true);
     try {
-      const res = await client.graphql({ query: startPayoutOnboarding });
+      const attrs = await fetchUserAttributes();
+      const res = await client.graphql({
+        query: startPayoutOnboarding,
+        variables: { email: attrs.email },
+      });
       await WebBrowser.openBrowserAsync(res.data.startPayoutOnboarding.url);
       await refresh(true);
     } catch (e) {
@@ -75,6 +69,12 @@ export default function Payouts() {
       setBusy(false);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!ready) refresh(true);
+    }, [ready, refresh]),
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>

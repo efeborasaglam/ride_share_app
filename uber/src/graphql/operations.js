@@ -35,8 +35,11 @@ export const getMyProfile = /* GraphQL */ `
       displayName
       role
       carType
+      carSeats
       verificationStatus
       verifiedAt
+      profileVisible
+      payoutsReady
     }
   }
 `;
@@ -48,8 +51,11 @@ export const saveProfile = /* GraphQL */ `
       displayName
       role
       carType
+      carSeats
       verificationStatus
       verifiedAt
+      profileVisible
+      payoutsReady
     }
   }
 `;
@@ -95,6 +101,8 @@ export const listActiveTrips = /* GraphQL */ `
       seats
       seatsLeft
       status
+      priceCents
+      currency
     }
   }
 `;
@@ -113,6 +121,7 @@ export const listMyRequests = /* GraphQL */ `
     listMyRequests {
       id
       tripId
+      driverId
       driverName
       carType
       tripOriginName
@@ -227,8 +236,11 @@ export const refreshVerification = /* GraphQL */ `
       displayName
       role
       carType
+      carSeats
       verificationStatus
       verifiedAt
+      profileVisible
+      payoutsReady
     }
   }
 `;
@@ -278,6 +290,25 @@ export const refreshPayoutStatus = /* GraphQL */ `
       verifiedAt
       profileVisible
       payoutsReady
+    }
+  }
+`;
+
+export const createPayment = /* GraphQL */ `
+  mutation CreatePayment($requestId: ID!) {
+    createPayment(requestId: $requestId) {
+      paymentIntentId
+      clientSecret
+    }
+  }
+`;
+
+export const confirmPayment = /* GraphQL */ `
+  mutation ConfirmPayment($requestId: ID!) {
+    confirmPayment(requestId: $requestId) {
+      id
+      status
+      paymentStatus
     }
   }
 `;

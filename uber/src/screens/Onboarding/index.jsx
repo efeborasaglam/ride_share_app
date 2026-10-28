@@ -10,31 +10,33 @@ import {
 } from "react-native";
 import { useProfile } from "../../context/ProfileContext";
 
-const CARS = [
-  { id: "UberX", hint: "Standard" },
-  { id: "Comfort", hint: "More comfort" },
-  { id: "UberXL", hint: "Extra large" },
-];
+const SEAT_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function OnboardingScreen() {
   const { profile, setupRole, save, closeSetup } = useProfile();
   const [name, setName] = useState(profile?.displayName ?? "");
   const [role, setRole] = useState(setupRole ?? profile?.role ?? null);
   const [carType, setCarType] = useState(profile?.carType ?? null);
+  const [carSeats, setCarSeats] = useState(profile?.carSeats ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const canSave =
     name.trim().length > 0 &&
     !!role &&
-    (role === "PASSENGER" || !!carType) &&
+    (role === "PASSENGER" || !!carSeats) &&
     !saving;
 
   const onSave = async () => {
     setSaving(true);
     setError("");
     try {
-      await save({ displayName: name.trim(), role, carType: carType ?? null });
+      await save({
+        displayName: name.trim(),
+        role,
+        carType: null,
+        carSeats: role === "DRIVER" ? carSeats : null,
+      });
       closeSetup();
     } catch (e) {
       console.log("SAVE PROFILE ERROR:", e.errors ?? e);
@@ -75,17 +77,18 @@ export default function OnboardingScreen() {
 
       {role === "DRIVER" && (
         <>
-          <Text style={styles.label}>Your car</Text>
-          {CARS.map((car) => (
-            <Pressable
-              key={car.id}
-              style={[styles.card, carType === car.id && styles.cardActive]}
-              onPress={() => setCarType(car.id)}
-            >
-              <Text style={styles.cardTitle}>{car.id}</Text>
-              <Text style={styles.cardText}>{car.hint}</Text>
-            </Pressable>
-          ))}
+          <Text style={styles.label}>Seats for passengers in your car</Text>
+          <View style={styles.seatRow}>
+            {SEAT_OPTIONS.map((n) => (
+              <Pressable
+                key={n}
+                style={[styles.seatChip, carSeats === n && styles.cardActive]}
+                onPress={() => setCarSeats(n)}
+              >
+                <Text style={styles.seatText}>{n}</Text>
+              </Pressable>
+            ))}
+          </View>
         </>
       )}
 
@@ -148,4 +151,17 @@ const styles = StyleSheet.create({
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   cancel: { textAlign: "center", marginTop: 16, color: "#1a73e8" },
   error: { color: "#c62828", marginTop: 12 },
+  seatRow: { flexDirection: "row", flexWrap: "wrap" },
+  seatChip: {
+    width: 52,
+    height: 52,
+    borderWidth: 1.5,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  seatText: { fontSize: 18, fontWeight: "700" },
 });

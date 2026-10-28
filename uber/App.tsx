@@ -6,6 +6,7 @@ import HomeScreen from "./src/screens/HomeScreen";
 import RootNavigator from "./src/navigation/Root";
 import "react-native-get-random-values";
 import { Amplify } from "aws-amplify";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 // const { coords } = await Location.getCurrentPositionAsync({});
 
@@ -39,9 +40,11 @@ export default function App() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <RootNavigator />;
-    </View>
+    <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_KEY}>
+      <View style={styles.container}>
+        <RootNavigator />
+      </View>
+    </StripeProvider>
   );
 }
 

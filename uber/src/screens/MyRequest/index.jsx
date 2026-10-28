@@ -11,14 +11,22 @@ import {
 } from "react-native";
 import { generateClient } from "aws-amplify/api";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { listMyRequests, cancelRequest } from "../../graphql/operations";
+import {
+  listMyRequests,
+  cancelRequest,
+  createPayment,
+  confirmPayment,
+} from "../../graphql/operations";
 import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
 import MenuButton from "../../components/MenuButton";
 import ProfileBadge from "../../components/ProfileBadge";
+import { useStripe } from "@stripe/stripe-react-native";
 
 const client = generateClient();
 
 export default function MyRequests() {
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [payingId, setPayingId] = useState(null);
   const navigation = useNavigation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +54,46 @@ export default function MyRequests() {
       load();
     }, [load]),
   );
+
+  const pay = async (item) => {
+    setPayingId(item.id);
+    try {
+      const res = await client.graphql({
+        query: createPayment,
+        variables: { requestId: item.id },
+      });
+      const { clientSecret } = res.data.createPayment;
+
+      const init = await initPaymentSheet({
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: "Deine App",
+      });
+      if (init.error) throw new Error(init.error.message);
+
+      const result = await presentPaymentSheet();
+      if (result.error) {
+        if (result.error.code !== "Canceled") {
+          Alert.alert("Payment failed", result.error.message);
+        }
+        return;
+      }
+
+      await client.graphql({
+        query: confirmPayment,
+        variables: { requestId: item.id },
+      });
+      await load();
+      Alert.alert("Paid", "Your payment was successful.");
+    } catch (e) {
+      console.log("PAY ERROR:", e.errors ?? e);
+      Alert.alert(
+        "Could not pay",
+        e.errors?.[0]?.message ?? e.message ?? "Please try again.",
+      );
+    } finally {
+      setPayingId(null);
+    }
+  };
 
   const cancelIt = async (id) => {
     setBusyId(id);
@@ -109,8 +157,8 @@ export default function MyRequests() {
             <View style={styles.card}>
               <View style={styles.rowBetween}>
                 <ProfileBadge
-                  userId={request.passengerId}
-                  name={request.passengerName}
+                  userId={item.driverId}
+                  name={item.driverName}
                   size={56}
                 />
                 <Text
@@ -163,6 +211,26 @@ export default function MyRequests() {
                   <Text style={styles.chatText}>Message driver</Text>
                 </Pressable>
               )}
+              {item.status === "ACCEPTED" && item.paymentStatus !== "PAID" && (
+                <Pressable
+                  style={[styles.pay, payingId === item.id && { opacity: 0.4 }]}
+                  disabled={payingId === item.id}
+                  onPress={() => pay(item)}
+                >
+                  {payingId === item.id ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.chatText}>Pay now</Text>
+                  )}
+                </Pressable>
+              )}
+              {item.status === "ACCEPTED" && item.paymentStatus === "PAID" && (
+                <Text
+                  style={[styles.meta, { color: "#2e7d32", fontWeight: "700" }]}
+                >
+                  Paid ✓
+                </Text>
+              )}
             </View>
           );
         }}
@@ -206,4 +274,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   chatText: { fontWeight: "600", color: "#fff" },
+  pay: {
+    marginTop: 8,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#2e7d32",
+    alignItems: "center",
+  },
 });

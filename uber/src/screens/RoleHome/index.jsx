@@ -50,7 +50,7 @@ export default function RoleHome() {
         </Text>
         <Text style={{ color: "#bbb", marginTop: 2 }}>
           {profile.displayName}
-          {isDriver ? ` · ${profile.carType}` : ""}
+          {isDriver ? ` · Seats: ${profile.carSeats}` : ""}
           {verified ? " · Verified ✓" : ""}
         </Text>
         <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />

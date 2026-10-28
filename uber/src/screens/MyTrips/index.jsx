@@ -16,7 +16,12 @@ import {
   listRequestsForMyTrips,
   cancelTrip,
 } from "../../graphql/operations";
-import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
+import {
+  formatDateTime,
+  formatPrice,
+  STATUS_COLORS,
+  statusLabel,
+} from "../../utils/format";
 import MenuButton from "../../components/MenuButton";
 
 const client = generateClient();
@@ -143,7 +148,7 @@ export default function MyTrips() {
                 {formatDateTime(item.departureAt)}
               </Text>
               <Text style={styles.meta}>
-                {item.carType} · {item.seatsLeft} of {item.seats} seats left
+                {item.seatsLeft} of {item.seats} seats left{" "}
               </Text>
               <Text style={styles.meta}>
                 {formatPrice(item.priceCents, item.currency)} per seat
@@ -158,7 +163,6 @@ export default function MyTrips() {
                   </Text>
                 </Pressable>
               )}
-
               {info.accepted.length > 0 && (
                 <View style={styles.passengers}>
                   <Text style={styles.passengersTitle}>Passengers</Text>
@@ -188,7 +192,6 @@ export default function MyTrips() {
                   ))}
                 </View>
               )}
-
               {item.status === "ACTIVE" && (
                 <Pressable
                   style={[

@@ -19,7 +19,7 @@ import { generateClient } from "aws-amplify/api";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { listActiveTrips, createRideRequest } from "../../graphql/operations";
 import { matchTrip } from "../../utils/matching";
-import { formatDateTime } from "../../utils/format";
+import { formatDateTime, formatPrice } from "../../utils/format";
 import { useProfile } from "../../context/ProfileContext";
 import ProfileBadge from "../../components/ProfileBadge";
 
@@ -226,9 +226,6 @@ export default function MatchResults() {
               style={[styles.card, trip.id === selectedId && styles.cardActive]}
             >
               <ProfileBadge userId={trip.driverId} name={trip.driverName} />
-              <Text style={[styles.meta, { marginTop: 6 }]}>
-                {trip.carType}
-              </Text>
               <Text style={styles.route} numberOfLines={2}>
                 {trip.originName} → {trip.destName}
               </Text>
@@ -237,7 +234,7 @@ export default function MatchResults() {
                 {trip.seatsLeft ?? trip.seats} of {trip.seats} seats left
               </Text>
               <Text style={styles.meta}>
-                {formatPrice(item.priceCents, item.currency)} per seat
+                {formatPrice(trip.priceCents, trip.currency)} per seat
               </Text>
               <Text style={styles.meta}>
                 Pickup {match.pickupOffKm.toFixed(1)} km from route · Ride about{" "}

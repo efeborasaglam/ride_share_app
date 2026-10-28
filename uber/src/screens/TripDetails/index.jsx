@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   StyleSheet,
+  TextInput,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import DateTimePicker, {
@@ -17,8 +18,13 @@ import { generateClient } from "aws-amplify/api";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { createTrip } from "../../graphql/operations";
 import { fetchRoute } from "../../utils/routes";
-import { formatDateTime, formatDuration } from "../../utils/format";
 import { useProfile } from "../../context/ProfileContext";
+import {
+  formatDateTime,
+  formatDuration,
+  formatPrice,
+  splitPrice,
+} from "../../utils/format";
 
 const client = generateClient();
 
@@ -54,7 +60,8 @@ export default function TripDetails() {
   const [routeError, setRouteError] = useState("");
   const [mapReady, setMapReady] = useState(false);
   const [date, setDate] = useState(defaultDeparture());
-  const [seats, setSeats] = useState(3);
+  const [seats, setSeats] = useState(profile.carSeats ?? 3);
+  const maxSeats = profile.carSeats ?? 8;
   const [publishing, setPublishing] = useState(false);
   const [priceText, setPriceText] = useState("5.00");
   const priceCents = Math.round(parseFloat(priceText.replace(",", ".")) * 100);
@@ -136,11 +143,13 @@ export default function TripDetails() {
             routePolyline: routeInfo.encoded,
             departureAt: date.toISOString(),
             seats,
+            priceCents,
           },
         },
       });
       navigation.popToTop();
       navigation.navigate("MyTrips");
+      console.log("PUBLISH priceCents:", priceCents, "valid:", priceValid);
     } catch (e) {
       console.log("CREATE TRIP ERROR:", e.errors ?? e);
       Alert.alert(
