@@ -55,7 +55,7 @@ export default function CustomDrawer(props) {
           {profile?.displayName}
         </Text>
         <Text style={{ color: "lightgrey", fontSize: 16, marginTop: 4 }}>
-          {isDriver ? `Driver · ${profile?.carType}` : "Passenger"}
+          {isDriver ? `Driver · Seats: ${profile?.carSeats}` : "Passenger"}
         </Text>
       </View>
 
@@ -93,7 +93,7 @@ export default function CustomDrawer(props) {
       />
       {isDriver && (
         <Item
-          label="Change car"
+          label="Change car seats"
           onPress={() => {
             props.navigation.closeDrawer();
             openSetup("DRIVER");

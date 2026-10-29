@@ -8,6 +8,9 @@ import {
   Platform,
   StyleSheet,
   TextInput,
+  Keyboard,
+  KeyboardAvoidingView,
+  InputAccessoryView,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import DateTimePicker, {
@@ -162,7 +165,10 @@ export default function TripDetails() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <View style={{ flex: 1 }}>
         <MapView
           ref={mapRef}
@@ -245,15 +251,33 @@ export default function TripDetails() {
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Price per seat (CHF)</Text>
-          <TextInput
-            style={styles.priceInput}
-            value={priceText}
-            onChangeText={setPriceText}
-            keyboardType="decimal-pad"
-            maxLength={7}
-          />
+          <Text style={styles.label}>Price per seat</Text>
+          <View style={styles.priceBox}>
+            <TextInput
+              style={styles.priceInput}
+              value={priceText}
+              onChangeText={setPriceText}
+              onEndEditing={() => {
+                if (priceValid) setPriceText((priceCents / 100).toFixed(2));
+              }}
+              keyboardType="decimal-pad"
+              inputAccessoryViewID="priceDone"
+              maxLength={6}
+              selectTextOnFocus
+            />
+            <Text style={styles.currency}>CHF</Text>
+          </View>
         </View>
+
+        {Platform.OS === "ios" && (
+          <InputAccessoryView nativeID="priceDone">
+            <View style={styles.accessory}>
+              <Pressable onPress={Keyboard.dismiss}>
+                <Text style={styles.accessoryText}>Done</Text>
+              </Pressable>
+            </View>
+          </InputAccessoryView>
+        )}
         {split ? (
           <Text style={styles.meta}>
             You receive {formatPrice(split.driver)} · platform fee{" "}
@@ -280,7 +304,7 @@ export default function TripDetails() {
           )}
         </Pressable>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -326,13 +350,27 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  priceInput: {
+  priceBox: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#eee",
     borderRadius: 8,
-    paddingVertical: 8,
     paddingHorizontal: 12,
-    minWidth: 90,
-    textAlign: "right",
-    fontSize: 16,
   },
+  priceInput: {
+    minWidth: 64,
+    textAlign: "right",
+    fontSize: 18,
+    fontWeight: "700",
+    paddingVertical: 10,
+  },
+  currency: { marginLeft: 6, color: "#555", fontWeight: "600" },
+  accessory: {
+    backgroundColor: "#f2f2f2",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    padding: 12,
+    alignItems: "flex-end",
+  },
+  accessoryText: { color: "#1a73e8", fontSize: 17, fontWeight: "600" },
 });
