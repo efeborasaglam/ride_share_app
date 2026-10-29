@@ -312,3 +312,50 @@ export const confirmPayment = /* GraphQL */ `
     }
   }
 `;
+
+export const adminListUsers = /* GraphQL */ `
+  query AdminListUsers {
+    adminListUsers {
+      id
+      displayName
+      role
+      carSeats
+      verificationStatus
+      payoutsReady
+      profileVisible
+    }
+  }
+`;
+
+export const adminListTrips = /* GraphQL */ `
+  query AdminListTrips {
+    adminListTrips {
+      id
+      driverId
+      driverName
+      originName
+      destName
+      departureAt
+      seats
+      seatsLeft
+      priceCents
+      currency
+      status
+    }
+  }
+`;
+
+export const adminListRequests = /* GraphQL */ `
+  query AdminListRequests {
+    adminListRequests {
+      id
+      tripId
+      passengerId
+      passengerName
+      pickupName
+      status
+      paymentStatus
+      createdAt
+    }
+  }
+`;

@@ -2,15 +2,16 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import { getCurrentUser } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
+import { getCurrentUser, signOut } from "aws-amplify/auth";
 import CustomDrawer from "./CustomDrawer";
 import AuthScreen from "../screens/login/AuthScreen";
 import OnboardingScreen from "../screens/Onboarding";
-import RoleHome from "../screens/RoleHome";
 import { ProfileProvider, useProfile } from "../context/ProfileContext";
 import DriverNavigator from "./Driver";
 import PassengerNavigator from "./Passenger";
+import { checkIsAdmin } from "../utils/admin";
+import AdminPanel from "../screens/Admin";
 
 const Drawer = createDrawerNavigator();
 
@@ -20,6 +21,28 @@ function HomeSwitch() {
     <DriverNavigator />
   ) : (
     <PassengerNavigator />
+  );
+}
+
+function AdminApp() {
+  return (
+    <View style={{ flex: 1 }}>
+      <AdminPanel />
+      <Pressable
+        onPress={() => signOut()}
+        style={{
+          position: "absolute",
+          top: 56,
+          right: 16,
+          backgroundColor: "#fff",
+          paddingVertical: 6,
+          paddingHorizontal: 12,
+          borderRadius: 16,
+        }}
+      >
+        <Text style={{ fontWeight: "600" }}>Sign out</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -68,6 +91,7 @@ function SignedInApp() {
 
 export default function RootNavigator() {
   const [auth, setAuth] = useState("loading"); // loading | in | out
+  const [isAdmin, setIsAdmin] = useState(null); // null = noch nicht geprüft
 
   useEffect(() => {
     getCurrentUser()
@@ -81,7 +105,14 @@ export default function RootNavigator() {
     return stop;
   }, []);
 
-  if (auth === "loading") {
+  useEffect(() => {
+    setIsAdmin(null);
+    if (auth === "in") {
+      checkIsAdmin().then(setIsAdmin);
+    }
+  }, [auth]);
+
+  if (auth === "loading" || (auth === "in" && isAdmin === null)) {
     return (
       <View style={{ flex: 1, justifyContent: "center" }}>
         <ActivityIndicator size="large" />
@@ -90,6 +121,8 @@ export default function RootNavigator() {
   }
 
   if (auth === "out") return <AuthScreen />;
+
+  if (isAdmin) return <AdminApp />;
 
   return (
     <ProfileProvider>

@@ -11,13 +11,15 @@ import {
   signUp,
   confirmSignUp,
   signIn,
+  confirmSignIn,
   resendSignUpCode,
 } from "aws-amplify/auth";
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState("signIn");
+  const [mode, setMode] = useState("signIn"); // signIn | signUp | confirm | newPassword
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -33,8 +35,6 @@ export default function AuthScreen() {
     } catch (e) {
       console.log("AUTH ERROR:", e.name, e.message);
       console.log("UNDERLYING:", e.underlyingError);
-      console.log("STACK:", e.stack);
-      console.log("AUTH ERROR:", e.name, e.message, e);
       setError(`${e.name}: ${e.message}`);
     } finally {
       setLoading(false);
@@ -48,14 +48,29 @@ export default function AuthScreen() {
         password,
         options: { authFlowType: "USER_PASSWORD_AUTH" },
       });
-      if (res.nextStep?.signInStep === "CONFIRM_SIGN_UP") {
+      const step = res.nextStep?.signInStep;
+      if (step === "CONFIRM_SIGN_UP") {
         await resendSignUpCode({ username: email.trim() });
         setInfo(
           "Bitte bestätige zuerst deine E-Mail. Wir haben dir einen neuen Code geschickt.",
         );
         setMode("confirm");
+      } else if (step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
+        setInfo("Bitte lege ein neues Passwort fest.");
+        setMode("newPassword");
+      } else if (step && step !== "DONE") {
+        setError(`Nicht unterstützter Anmeldeschritt: ${step}`);
       }
-      // Bei Erfolg meldet der Hub-Listener in Root.js das Login.
+      // Bei Erfolg meldet der Hub-Listener in Root.jsx das Login.
+    });
+
+  const handleNewPassword = () =>
+    run(async () => {
+      const res = await confirmSignIn({ challengeResponse: newPassword });
+      const step = res.nextStep?.signInStep;
+      if (step && step !== "DONE") {
+        setError(`Nicht unterstützter Anmeldeschritt: ${step}`);
+      }
     });
 
   const handleSignUp = () =>
@@ -86,15 +101,28 @@ export default function AuthScreen() {
       setInfo("Neuer Code gesendet.");
     });
 
+  const TITLES = {
+    signIn: "Anmelden",
+    signUp: "Registrieren",
+    confirm: "E-Mail bestätigen",
+    newPassword: "Neues Passwort festlegen",
+  };
+  const BUTTONS = {
+    signIn: "Anmelden",
+    signUp: "Konto erstellen",
+    confirm: "Bestätigen",
+    newPassword: "Passwort speichern",
+  };
+  const HANDLERS = {
+    signIn: handleSignIn,
+    signUp: handleSignUp,
+    confirm: handleConfirm,
+    newPassword: handleNewPassword,
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {mode === "signIn"
-          ? "Anmelden"
-          : mode === "signUp"
-            ? "Registrieren"
-            : "E-Mail bestätigen"}
-      </Text>
+      <Text style={styles.title}>{TITLES[mode]}</Text>
 
       <TextInput
         style={styles.input}
@@ -103,10 +131,10 @@ export default function AuthScreen() {
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
-        editable={mode !== "confirm"}
+        editable={mode === "signIn" || mode === "signUp"}
       />
 
-      {mode !== "confirm" && (
+      {(mode === "signIn" || mode === "signUp") && (
         <TextInput
           style={styles.input}
           placeholder="Passwort"
@@ -114,6 +142,17 @@ export default function AuthScreen() {
           autoCapitalize="none"
           value={password}
           onChangeText={setPassword}
+        />
+      )}
+
+      {mode === "newPassword" && (
+        <TextInput
+          style={styles.input}
+          placeholder="Neues Passwort"
+          secureTextEntry
+          autoCapitalize="none"
+          value={newPassword}
+          onChangeText={setNewPassword}
         />
       )}
 
@@ -133,24 +172,12 @@ export default function AuthScreen() {
       <Pressable
         style={styles.button}
         disabled={loading}
-        onPress={
-          mode === "signIn"
-            ? handleSignIn
-            : mode === "signUp"
-              ? handleSignUp
-              : handleConfirm
-        }
+        onPress={HANDLERS[mode]}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>
-            {mode === "signIn"
-              ? "Anmelden"
-              : mode === "signUp"
-                ? "Konto erstellen"
-                : "Bestätigen"}
-          </Text>
+          <Text style={styles.buttonText}>{BUTTONS[mode]}</Text>
         )}
       </Pressable>
 
