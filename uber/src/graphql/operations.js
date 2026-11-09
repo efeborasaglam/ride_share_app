@@ -40,6 +40,8 @@ export const getMyProfile = /* GraphQL */ `
       verifiedAt
       profileVisible
       payoutsReady
+      bannedUntil
+      banReason
     }
   }
 `;
@@ -56,6 +58,8 @@ export const saveProfile = /* GraphQL */ `
       verifiedAt
       profileVisible
       payoutsReady
+      bannedUntil
+      banReason
     }
   }
 `;
@@ -356,6 +360,54 @@ export const adminListRequests = /* GraphQL */ `
       status
       paymentStatus
       createdAt
+    }
+  }
+`;
+
+export const createReport = /* GraphQL */ `
+  mutation CreateReport($requestId: ID!, $text: String!) {
+    createReport(requestId: $requestId, text: $text) {
+      id
+      status
+    }
+  }
+`;
+
+export const adminListReports = /* GraphQL */ `
+  query AdminListReports {
+    adminListReports {
+      id
+      requestId
+      reporterId
+      reporterName
+      reportedId
+      reportedName
+      text
+      status
+      createdAt
+      tripOriginName
+      tripDestName
+      resolution
+      resolvedAt
+    }
+  }
+`;
+
+export const adminResolveReport = /* GraphQL */ `
+  mutation AdminResolveReport($reportId: ID!, $action: String!, $days: Int) {
+    adminResolveReport(reportId: $reportId, action: $action, days: $days) {
+      id
+      status
+      resolution
+    }
+  }
+`;
+
+export const adminUnbanUser = /* GraphQL */ `
+  mutation AdminUnbanUser($userId: ID!) {
+    adminUnbanUser(userId: $userId) {
+      id
+      bannedUntil
     }
   }
 `;

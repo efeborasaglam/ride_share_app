@@ -22,11 +22,14 @@ import { matchTrip } from "../../utils/matching";
 import { formatDateTime, formatPrice } from "../../utils/format";
 import { useProfile } from "../../context/ProfileContext";
 import ProfileBadge from "../../components/ProfileBadge";
+import { useTheme, useThemedStyles } from "../../theme";
 
 const client = generateClient();
 const RADIUS_OPTIONS = [5, 10, 20];
 
 export default function MatchResults() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
   const { profile } = useProfile();
@@ -145,7 +148,6 @@ export default function MatchResults() {
   };
 
   const onRequest = (trip) => {
-    console.log("onRequest tap", trip.id);
     Alert.alert(
       "Request this ride?",
       `${trip.driverName ?? "The driver"} will see your pickup location and can accept or decline.`,
@@ -157,7 +159,7 @@ export default function MatchResults() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={styles.screen}>
       <View style={{ height: 260 }}>
         <MapView
           ref={mapRef}
@@ -174,7 +176,7 @@ export default function MatchResults() {
             <Polyline
               key={trip.id}
               coordinates={match.coords}
-              strokeColor={trip.id === selectedId ? "blue" : "#9e9e9e"}
+              strokeColor={trip.id === selectedId ? "#115C84" : "#9e9e9e"}
               strokeWidth={trip.id === selectedId ? 5 : 3}
             />
           ))}
@@ -194,7 +196,9 @@ export default function MatchResults() {
             onPress={() => setRadius(r)}
             style={[styles.chip, radius === r && styles.chipActive]}
           >
-            <Text style={[styles.chipText, radius === r && { color: "#fff" }]}>
+            <Text
+              style={[styles.chipText, radius === r && { color: t.onPrimary }]}
+            >
               {r} km
             </Text>
           </Pressable>
@@ -202,7 +206,7 @@ export default function MatchResults() {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} />
+        <ActivityIndicator style={{ marginTop: 32 }} color={t.primary} />
       ) : error ? (
         <View style={{ padding: 24, alignItems: "center" }}>
           <Text style={styles.error}>{error}</Text>
@@ -254,7 +258,7 @@ export default function MatchResults() {
                 onPress={() => onRequest(trip)}
               >
                 {requestingId === trip.id ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={t.onPrimary} />
                 ) : (
                   <Text style={styles.buttonText}>
                     {(trip.seatsLeft ?? trip.seats) < 1
@@ -271,49 +275,51 @@ export default function MatchResults() {
   );
 }
 
-const styles = StyleSheet.create({
-  back: {
-    position: "absolute",
-    top: 56,
-    left: 16,
-    backgroundColor: "#fff",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-  },
-  backText: { fontSize: 16, fontWeight: "600" },
-  radiusRow: { flexDirection: "row", alignItems: "center", padding: 12 },
-  radiusLabel: { fontSize: 15, marginRight: 12 },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: "#eee",
-    marginRight: 8,
-  },
-  chipActive: { backgroundColor: "#000" },
-  chipText: { fontWeight: "600" },
-  card: {
-    marginHorizontal: 12,
-    marginBottom: 10,
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: "#ddd",
-  },
-  cardActive: { borderColor: "#000" },
-  driver: { fontSize: 16, fontWeight: "700" },
-  route: { marginTop: 4, fontSize: 15 },
-  meta: { color: "#555", marginTop: 4 },
-  button: {
-    backgroundColor: "#000",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 12,
-  },
-  buttonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  empty: { textAlign: "center", marginTop: 32, color: "#777", padding: 24 },
-  error: { color: "#c62828", marginBottom: 12 },
-  link: { color: "#1a73e8", fontSize: 16 },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    back: {
+      position: "absolute",
+      top: 56,
+      left: 16,
+      backgroundColor: t.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+    },
+    backText: { fontSize: 16, fontWeight: "600", color: t.text },
+    radiusRow: { flexDirection: "row", alignItems: "center", padding: 12 },
+    radiusLabel: { fontSize: 15, marginRight: 12, color: t.text },
+    chip: {
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      backgroundColor: t.chip,
+      marginRight: 8,
+    },
+    chipActive: { backgroundColor: t.primary },
+    chipText: { fontWeight: "600", color: t.chipText },
+    card: {
+      marginHorizontal: 12,
+      marginBottom: 10,
+      padding: 14,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    cardActive: { borderColor: t.primary },
+    route: { marginTop: 4, fontSize: 15, color: t.text },
+    meta: { color: t.muted, marginTop: 4 },
+    button: {
+      backgroundColor: t.primary,
+      padding: 12,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 12,
+    },
+    buttonText: { color: t.onPrimary, fontSize: 15, fontWeight: "600" },
+    empty: { textAlign: "center", marginTop: 32, color: t.muted, padding: 24 },
+    error: { color: t.danger, marginBottom: 12 },
+    link: { color: t.primary, fontSize: 16 },
+  });

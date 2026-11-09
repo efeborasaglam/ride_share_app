@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
 } from "react-native";
 import {
@@ -14,8 +15,12 @@ import {
   confirmSignIn,
   resendSignUpCode,
 } from "aws-amplify/auth";
+import Logo from "../../components/Logo";
+import { useTheme, useThemedStyles } from "../../theme";
 
 export default function AuthScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [mode, setMode] = useState("signIn"); // signIn | signUp | confirm | newPassword
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -121,12 +126,19 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={{ backgroundColor: t.bg }}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Logo size={140} style={{ alignSelf: "center", marginBottom: 24 }} />
+
       <Text style={styles.title}>{TITLES[mode]}</Text>
 
       <TextInput
         style={styles.input}
         placeholder="E-Mail"
+        placeholderTextColor={t.muted}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -138,6 +150,7 @@ export default function AuthScreen() {
         <TextInput
           style={styles.input}
           placeholder="Passwort"
+          placeholderTextColor={t.muted}
           secureTextEntry
           autoCapitalize="none"
           value={password}
@@ -149,6 +162,7 @@ export default function AuthScreen() {
         <TextInput
           style={styles.input}
           placeholder="Neues Passwort"
+          placeholderTextColor={t.muted}
           secureTextEntry
           autoCapitalize="none"
           value={newPassword}
@@ -160,6 +174,7 @@ export default function AuthScreen() {
         <TextInput
           style={styles.input}
           placeholder="Code aus der E-Mail"
+          placeholderTextColor={t.muted}
           keyboardType="number-pad"
           value={code}
           onChangeText={setCode}
@@ -170,12 +185,12 @@ export default function AuthScreen() {
       {!!info && <Text style={styles.info}>{info}</Text>}
 
       <Pressable
-        style={styles.button}
+        style={[styles.button, loading && { opacity: 0.6 }]}
         disabled={loading}
         onPress={HANDLERS[mode]}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={t.onPrimary} />
         ) : (
           <Text style={styles.buttonText}>{BUTTONS[mode]}</Text>
         )}
@@ -196,35 +211,44 @@ export default function AuthScreen() {
           <Text style={styles.link}>Zurück zur Anmeldung</Text>
         </Pressable>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#fff",
-  },
-  title: { fontSize: 28, fontWeight: "700", marginBottom: 24 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: "#000",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  link: { color: "#1a73e8", textAlign: "center", marginTop: 16 },
-  error: { color: "#c62828", marginBottom: 8 },
-  info: { color: "#2e7d32", marginBottom: 8 },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      justifyContent: "center",
+      padding: 24,
+      paddingTop: 64,
+      backgroundColor: t.bg,
+    },
+    title: { fontSize: 28, fontWeight: "700", marginBottom: 24, color: t.text },
+    input: {
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      color: t.text,
+      borderRadius: 10,
+      padding: 12,
+      marginBottom: 12,
+      fontSize: 16,
+    },
+    button: {
+      backgroundColor: t.primary,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 4,
+    },
+    buttonText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    link: {
+      color: t.primary,
+      textAlign: "center",
+      marginTop: 16,
+      fontWeight: "600",
+    },
+    error: { color: t.danger, marginBottom: 8 },
+    info: { color: t.accent, marginBottom: 8 },
+  });

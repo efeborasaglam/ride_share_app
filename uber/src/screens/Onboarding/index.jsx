@@ -9,10 +9,12 @@ import {
   StyleSheet,
 } from "react-native";
 import { useProfile } from "../../context/ProfileContext";
+import { useThemedStyles } from "../../theme";
 
 const SEAT_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function OnboardingScreen() {
+  const styles = useThemedStyles(makeStyles);
   const { profile, setupRole, save, closeSetup } = useProfile();
   const [name, setName] = useState(profile?.displayName ?? "");
   const [role, setRole] = useState(setupRole ?? profile?.role ?? null);
@@ -115,53 +117,64 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    paddingTop: 72,
-    backgroundColor: "#fff",
-    flexGrow: 1,
-  },
-  title: { fontSize: 28, fontWeight: "700", marginBottom: 24 },
-  label: { fontSize: 16, fontWeight: "600", marginTop: 20, marginBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  card: {
-    borderWidth: 1.5,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
-  },
-  cardActive: { borderColor: "#000", backgroundColor: "#f2f2f2" },
-  cardTitle: { fontSize: 17, fontWeight: "700" },
-  cardText: { color: "#666", marginTop: 2 },
-  button: {
-    backgroundColor: "#000",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 24,
-  },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  cancel: { textAlign: "center", marginTop: 16, color: "#1a73e8" },
-  error: { color: "#c62828", marginTop: 12 },
-  seatRow: { flexDirection: "row", flexWrap: "wrap" },
-  seatChip: {
-    width: 52,
-    height: 52,
-    borderWidth: 1.5,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-    marginBottom: 10,
-  },
-  seatText: { fontSize: 18, fontWeight: "700" },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    container: {
+      padding: 24,
+      paddingTop: 72,
+      backgroundColor: t.bg,
+      flexGrow: 1,
+    },
+    title: { fontSize: 28, fontWeight: "700", marginBottom: 24, color: t.text },
+    label: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginTop: 20,
+      marginBottom: 8,
+      color: t.text,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      color: t.text,
+      borderRadius: 10,
+      padding: 12,
+      fontSize: 16,
+    },
+    card: {
+      borderWidth: 1.5,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 10,
+    },
+    cardActive: { borderColor: t.primary, backgroundColor: t.chip },
+    cardTitle: { fontSize: 17, fontWeight: "700", color: t.text },
+    cardText: { color: t.muted, marginTop: 2 },
+    seatRow: { flexDirection: "row", flexWrap: "wrap" },
+    seatChip: {
+      width: 52,
+      height: 52,
+      borderWidth: 1.5,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 10,
+      marginBottom: 10,
+    },
+    seatText: { fontSize: 18, fontWeight: "700", color: t.text },
+    button: {
+      backgroundColor: t.primary,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 24,
+    },
+    buttonText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    cancel: { textAlign: "center", marginTop: 16, color: t.primary },
+    error: { color: t.danger, marginTop: 12 },
+  });

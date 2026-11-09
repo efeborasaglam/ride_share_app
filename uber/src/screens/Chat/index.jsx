@@ -20,13 +20,19 @@ import {
 } from "@react-navigation/native";
 import { listMessages, sendMessage } from "../../graphql/operations";
 import { formatTime } from "../../utils/format";
+import ReportModal from "../../components/ReportModal";
+import ScreenHeader from "../../components/ScreenHeader";
+import { useTheme, useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
 export default function Chat() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
   const { requestId, title, subtitle } = route.params;
+  const [reportOpen, setReportOpen] = useState(false);
 
   const [myId, setMyId] = useState(null);
   const [messages, setMessages] = useState([]); // newest first
@@ -96,25 +102,25 @@ export default function Chat() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#fff" }}
+      style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
-        <Text style={styles.title}>{title}</Text>
-        {!!subtitle && (
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {subtitle}
-          </Text>
-        )}
-      </View>
+      <ScreenHeader
+        title={title}
+        subtitle={subtitle}
+        onBack={() => navigation.goBack()}
+        menu={false}
+        action={
+          <Pressable onPress={() => setReportOpen(true)} hitSlop={10}>
+            <Text style={styles.report}>Report</Text>
+          </Pressable>
+        }
+      />
 
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} />
+        <ActivityIndicator style={{ marginTop: 32 }} color={t.primary} />
       ) : (
         <FlatList
           style={{ flex: 1 }}
@@ -147,6 +153,7 @@ export default function Chat() {
         <TextInput
           style={styles.input}
           placeholder="Message"
+          placeholderTextColor={t.muted}
           value={text}
           onChangeText={setText}
           multiline
@@ -158,71 +165,79 @@ export default function Chat() {
           onPress={onSend}
         >
           {sending ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={t.onPrimary} />
           ) : (
             <Text style={styles.sendText}>Send</Text>
           )}
         </Pressable>
       </View>
+
+      <ReportModal
+        visible={reportOpen}
+        requestId={requestId}
+        onClose={() => setReportOpen(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  header: { padding: 16, paddingTop: 56, backgroundColor: "#000" },
-  back: { color: "#fff", fontSize: 16, marginBottom: 8 },
-  title: { color: "#fff", fontSize: 20, fontWeight: "700" },
-  subtitle: { color: "#bbb", marginTop: 2 },
-  error: { color: "#c62828", padding: 12 },
-  empty: { textAlign: "center", color: "#777", padding: 24 },
-  bubble: {
-    maxWidth: "80%",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    marginVertical: 4,
-  },
-  mine: { alignSelf: "flex-end", backgroundColor: "#000" },
-  theirs: { alignSelf: "flex-start", backgroundColor: "#eee" },
-  mineText: { color: "#fff", fontSize: 16 },
-  theirsText: { color: "#000", fontSize: 16 },
-  mineTime: {
-    color: "#bbb",
-    fontSize: 11,
-    marginTop: 2,
-    alignSelf: "flex-end",
-  },
-  theirsTime: {
-    color: "#777",
-    fontSize: 11,
-    marginTop: 2,
-    alignSelf: "flex-end",
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    padding: 10,
-    paddingBottom: 28,
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-  },
-  input: {
-    flex: 1,
-    maxHeight: 110,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 10,
-    fontSize: 16,
-  },
-  send: {
-    marginLeft: 8,
-    backgroundColor: "#000",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-  },
-  sendText: { color: "#fff", fontWeight: "600" },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    report: { color: t.danger, fontWeight: "700", fontSize: 15 },
+    error: { color: t.danger, padding: 12 },
+    empty: { textAlign: "center", color: t.muted, padding: 24 },
+    bubble: {
+      maxWidth: "80%",
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      marginVertical: 4,
+    },
+    mine: { alignSelf: "flex-end", backgroundColor: t.primary },
+    theirs: { alignSelf: "flex-start", backgroundColor: t.chip },
+    mineText: { color: t.onPrimary, fontSize: 16 },
+    theirsText: { color: t.chipText, fontSize: 16 },
+    mineTime: {
+      color: "#FFE7D6",
+      fontSize: 11,
+      marginTop: 2,
+      alignSelf: "flex-end",
+    },
+    theirsTime: {
+      color: t.muted,
+      fontSize: 11,
+      marginTop: 2,
+      alignSelf: "flex-end",
+    },
+    inputRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      padding: 10,
+      paddingBottom: 28,
+      borderTopWidth: 1,
+      borderTopColor: t.border,
+      backgroundColor: t.surface,
+    },
+    input: {
+      flex: 1,
+      maxHeight: 110,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.bg,
+      color: t.text,
+      borderRadius: 18,
+      paddingHorizontal: 14,
+      paddingTop: 10,
+      paddingBottom: 10,
+      fontSize: 16,
+    },
+    send: {
+      marginLeft: 8,
+      backgroundColor: t.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 18,
+    },
+    sendText: { color: t.onPrimary, fontWeight: "600" },
+  });

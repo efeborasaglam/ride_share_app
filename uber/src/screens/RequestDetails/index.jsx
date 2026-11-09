@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { getMyTrip, respondToRequest } from "../../graphql/operations";
 import { matchTrip } from "../../utils/matching";
 import { formatDateTime } from "../../utils/format";
+import { useTheme, useThemedStyles } from "../../theme";
 
 const ANSWERED = {
   ACCEPTED: "You accepted this request.",
@@ -24,6 +25,8 @@ const ANSWERED = {
 const client = generateClient();
 
 export default function RequestDetails() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
   const { request } = route.params;
@@ -113,7 +116,7 @@ export default function RequestDetails() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={styles.screen}>
       <View style={{ flex: 1 }}>
         <MapView
           ref={mapRef}
@@ -175,7 +178,7 @@ export default function RequestDetails() {
               onPress={() => respond(true)}
             >
               {busy ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={t.onPrimary} />
               ) : (
                 <Text style={styles.acceptText}>Accept</Text>
               )}
@@ -207,47 +210,49 @@ export default function RequestDetails() {
   );
 }
 
-const styles = StyleSheet.create({
-  back: {
-    position: "absolute",
-    top: 56,
-    left: 16,
-    backgroundColor: "#fff",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-  },
-  backText: { fontSize: 16, fontWeight: "600" },
-  panel: { padding: 16, paddingBottom: 32 },
-  name: { fontSize: 20, fontWeight: "700" },
-  meta: { color: "#555", marginTop: 4 },
-  line: { marginTop: 8, fontSize: 15 },
-  buttons: { flexDirection: "row", marginTop: 16 },
-  decline: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    backgroundColor: "#eee",
-    marginRight: 8,
-  },
-  declineText: { fontSize: 16, fontWeight: "600" },
-  accept: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    backgroundColor: "#000",
-    marginLeft: 8,
-  },
-  acceptText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  answered: { marginTop: 16, fontSize: 16, fontWeight: "600" },
-  chatBtn: {
-    marginTop: 12,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#000",
-    alignItems: "center",
-  },
-  chatBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    back: {
+      position: "absolute",
+      top: 56,
+      left: 16,
+      backgroundColor: t.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+    },
+    backText: { fontSize: 16, fontWeight: "600", color: t.text },
+    panel: { padding: 16, paddingBottom: 32, backgroundColor: t.surface },
+    name: { fontSize: 20, fontWeight: "700", color: t.text },
+    meta: { color: t.muted, marginTop: 4 },
+    line: { marginTop: 8, fontSize: 15, color: t.text },
+    buttons: { flexDirection: "row", marginTop: 16 },
+    decline: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      backgroundColor: t.chip,
+      marginRight: 8,
+    },
+    declineText: { fontSize: 16, fontWeight: "600", color: t.chipText },
+    accept: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      backgroundColor: t.primary,
+      marginLeft: 8,
+    },
+    acceptText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    answered: { marginTop: 16, fontSize: 16, fontWeight: "600", color: t.text },
+    chatBtn: {
+      marginTop: 12,
+      padding: 14,
+      borderRadius: 10,
+      backgroundColor: t.primary,
+      alignItems: "center",
+    },
+    chatBtnText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+  });

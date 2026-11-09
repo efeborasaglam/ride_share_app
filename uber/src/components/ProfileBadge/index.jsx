@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { generateClient } from "aws-amplify/api";
 import { getPublicProfile } from "../../graphql/operations";
+import { useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
 export default function ProfileBadge({ userId, name, size = 44 }) {
+  const styles = useThemedStyles(makeStyles);
   const [info, setInfo] = useState(null);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function ProfileBadge({ userId, name, size = 44 }) {
       {info?.photoUrl ? (
         <Image
           source={{ uri: info.photoUrl }}
-          style={[round, { backgroundColor: "#ddd" }]}
+          style={[round, styles.photo]}
           resizeMode="cover"
         />
       ) : (
@@ -58,14 +60,16 @@ export default function ProfileBadge({ userId, name, size = 44 }) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center" },
-  placeholder: {
-    backgroundColor: "#bdbdbd",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  initial: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  name: { fontSize: 16, fontWeight: "700" },
-  meta: { color: "#555", marginTop: 2 },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    row: { flexDirection: "row", alignItems: "center" },
+    photo: { backgroundColor: t.chip },
+    placeholder: {
+      backgroundColor: t.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    initial: { color: t.onPrimary, fontSize: 18, fontWeight: "700" },
+    name: { fontSize: 16, fontWeight: "700", color: t.text },
+    meta: { color: t.muted, marginTop: 2 },
+  });

@@ -28,6 +28,7 @@ import {
   formatPrice,
   splitPrice,
 } from "../../utils/format";
+import { useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
@@ -38,6 +39,7 @@ const defaultDeparture = () => {
 };
 
 export default function TripDetails() {
+  const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
   const { profile } = useProfile();
@@ -308,69 +310,76 @@ export default function TripDetails() {
   );
 }
 
-const styles = StyleSheet.create({
-  back: {
-    position: "absolute",
-    top: 56,
-    left: 16,
-    backgroundColor: "#fff",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-  },
-  backText: { fontSize: 16, fontWeight: "600" },
-  panel: { padding: 16, paddingBottom: 32, backgroundColor: "#fff" },
-  route: { fontSize: 16, fontWeight: "700" },
-  meta: { color: "#555", marginTop: 4, marginBottom: 8 },
-  error: { color: "#c62828", marginVertical: 8 },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  label: { fontSize: 16 },
-  dateButton: { backgroundColor: "#eee", padding: 10, borderRadius: 8 },
-  stepper: { flexDirection: "row", alignItems: "center" },
-  stepBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#eee",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepText: { fontSize: 20, fontWeight: "700" },
-  seats: { fontSize: 18, fontWeight: "700", marginHorizontal: 16 },
-  button: {
-    backgroundColor: "#000",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 12,
-  },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  priceBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#eee",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  priceInput: {
-    minWidth: 64,
-    textAlign: "right",
-    fontSize: 18,
-    fontWeight: "700",
-    paddingVertical: 10,
-  },
-  currency: { marginLeft: 6, color: "#555", fontWeight: "600" },
-  accessory: {
-    backgroundColor: "#f2f2f2",
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    padding: 12,
-    alignItems: "flex-end",
-  },
-  accessoryText: { color: "#1a73e8", fontSize: 17, fontWeight: "600" },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    back: {
+      position: "absolute",
+      top: 56,
+      left: 16,
+      backgroundColor: t.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+    },
+    backText: { fontSize: 16, fontWeight: "600", color: t.text },
+    panel: { padding: 16, paddingBottom: 32, backgroundColor: t.surface },
+    route: { fontSize: 16, fontWeight: "700", color: t.text },
+    meta: { color: t.muted, marginTop: 4, marginBottom: 8 },
+    error: { color: t.danger, marginVertical: 8 },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginVertical: 8,
+    },
+    label: { fontSize: 16, color: t.text },
+    dateButton: { backgroundColor: t.chip, padding: 10, borderRadius: 8 },
+    stepper: { flexDirection: "row", alignItems: "center" },
+    stepBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: t.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    stepText: { fontSize: 20, fontWeight: "700", color: t.text },
+    seats: {
+      fontSize: 18,
+      fontWeight: "700",
+      marginHorizontal: 16,
+      color: t.text,
+    },
+    button: {
+      backgroundColor: t.primary,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 12,
+    },
+    buttonText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    priceBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: t.chip,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+    },
+    priceInput: {
+      minWidth: 64,
+      textAlign: "right",
+      fontSize: 18,
+      fontWeight: "700",
+      paddingVertical: 10,
+      color: t.text,
+    },
+    currency: { marginLeft: 6, color: t.muted, fontWeight: "600" },
+    accessory: {
+      backgroundColor: t.surface,
+      borderTopWidth: 1,
+      borderTopColor: t.border,
+      padding: 12,
+      alignItems: "flex-end",
+    },
+    accessoryText: { color: t.primary, fontSize: 17, fontWeight: "600" },
+  });

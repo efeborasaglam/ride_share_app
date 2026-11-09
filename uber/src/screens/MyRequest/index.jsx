@@ -21,10 +21,12 @@ import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
 import MenuButton from "../../components/MenuButton";
 import ProfileBadge from "../../components/ProfileBadge";
 import { useStripe } from "@stripe/stripe-react-native";
+import { useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
 export default function MyRequests() {
+  const styles = useThemedStyles(makeStyles);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [payingId, setPayingId] = useState(null);
   const navigation = useNavigation();
@@ -239,46 +241,63 @@ export default function MyRequests() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { padding: 16, paddingTop: 56, backgroundColor: "#000" },
-  back: { color: "#fff", fontSize: 16, marginBottom: 8 },
-  title: { color: "#fff", fontSize: 22, fontWeight: "700" },
-  card: {
-    margin: 12,
-    marginBottom: 0,
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between" },
-  driver: { fontSize: 16, fontWeight: "700", flex: 1 },
-  status: { fontWeight: "700" },
-  route: { marginTop: 4, fontSize: 15 },
-  meta: { color: "#555", marginTop: 4 },
-  cancel: {
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    alignItems: "center",
-  },
-  cancelText: { fontWeight: "600", color: "#c62828" },
-  empty: { textAlign: "center", marginTop: 40, color: "#777", padding: 24 },
-  error: { color: "#c62828", padding: 16 },
-  chat: {
-    marginTop: 8,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#000",
-    alignItems: "center",
-  },
-  chatText: { fontWeight: "600", color: "#fff" },
-  pay: {
-    marginTop: 8,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#2e7d32",
-    alignItems: "center",
-  },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    card: {
+      margin: 12,
+      marginBottom: 0,
+      padding: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    rowBetween: { flexDirection: "row", justifyContent: "space-between" },
+    status: { fontWeight: "700" },
+    route: { marginTop: 4, fontSize: 15, color: t.text },
+    meta: { color: t.muted, marginTop: 4 },
+    cancel: {
+      marginTop: 12,
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: t.chip,
+      alignItems: "center",
+    },
+    cancelText: { fontWeight: "600", color: t.danger },
+    chat: {
+      marginTop: 8,
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: t.primary,
+      alignItems: "center",
+    },
+    chatText: { fontWeight: "600", color: t.onPrimary },
+    pay: {
+      marginTop: 8,
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: t.accent,
+      alignItems: "center",
+    },
+    empty: { textAlign: "center", marginTop: 40, color: t.muted, padding: 24 },
+    error: { color: t.danger, padding: 16 },
+    header: {
+      paddingTop: 56,
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+      backgroundColor: t.headerBg,
+    },
+    back: {
+      color: t.primary,
+      fontSize: 18,
+      fontWeight: "600",
+      paddingVertical: 8,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "700",
+      color: t.headerText,
+      marginTop: 4,
+    },
+  });

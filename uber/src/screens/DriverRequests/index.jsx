@@ -11,8 +11,9 @@ import { generateClient } from "aws-amplify/api";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { listRequestsForMyTrips } from "../../graphql/operations";
 import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
-import MenuButton from "../../components/MenuButton";
+import ScreenHeader from "../../components/ScreenHeader";
 import ProfileBadge from "../../components/ProfileBadge";
+import { useTheme, useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
@@ -25,6 +26,8 @@ const ORDER = {
 };
 
 export default function DriverRequests() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,21 +62,22 @@ export default function DriverRequests() {
   const pending = requests.filter((r) => r.status === "PENDING").length;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.navigate("DriverHome")}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Requests</Text>
-        <Text style={styles.sub}>{pending} waiting for your answer</Text>
-        <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />
-      </View>
+    <View style={styles.screen}>
+      <ScreenHeader
+        title="Requests"
+        subtitle={`${pending} waiting for your answer`}
+        onBack={() => navigation.navigate("DriverHome")}
+      />
       {!!error && <Text style={styles.error}>{error}</Text>}
       <FlatList
         data={requests}
         keyExtractor={(r) => r.id}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={load} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={load}
+            tintColor={t.primary}
+          />
         }
         ListEmptyComponent={
           !loading && (
@@ -100,7 +104,7 @@ export default function DriverRequests() {
               <Text
                 style={[
                   styles.status,
-                  { color: STATUS_COLORS[item.status] ?? "#555" },
+                  { color: STATUS_COLORS[item.status] ?? t.muted },
                 ]}
               >
                 {statusLabel(item.status)}
@@ -120,24 +124,22 @@ export default function DriverRequests() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { padding: 16, paddingTop: 56, backgroundColor: "#000" },
-  back: { color: "#fff", fontSize: 16, marginBottom: 8 },
-  title: { color: "#fff", fontSize: 22, fontWeight: "700" },
-  sub: { color: "#bbb", marginTop: 2 },
-  card: {
-    margin: 12,
-    marginBottom: 0,
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between" },
-  name: { fontSize: 16, fontWeight: "700", flex: 1 },
-  status: { fontWeight: "700" },
-  route: { marginTop: 4, fontSize: 15 },
-  meta: { color: "#555", marginTop: 4 },
-  empty: { textAlign: "center", marginTop: 40, color: "#777", padding: 24 },
-  error: { color: "#c62828", padding: 16 },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    card: {
+      margin: 12,
+      marginBottom: 0,
+      padding: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    rowBetween: { flexDirection: "row", justifyContent: "space-between" },
+    status: { fontWeight: "700" },
+    route: { marginTop: 4, fontSize: 15, color: t.text },
+    meta: { color: t.muted, marginTop: 4 },
+    empty: { textAlign: "center", marginTop: 40, color: t.muted, padding: 24 },
+    error: { color: t.danger, padding: 16 },
+  });

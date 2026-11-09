@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { Hub } from "aws-amplify/utils";
 import { getCurrentUser, signOut } from "aws-amplify/auth";
 import CustomDrawer from "./CustomDrawer";
@@ -12,6 +13,8 @@ import DriverNavigator from "./Driver";
 import PassengerNavigator from "./Passenger";
 import { checkIsAdmin } from "../utils/admin";
 import AdminPanel from "../screens/Admin";
+import { formatDateTime } from "../utils/format";
+import { useTheme } from "../theme";
 
 const Drawer = createDrawerNavigator();
 
@@ -46,13 +49,70 @@ function AdminApp() {
   );
 }
 
+function BannedScreen({ until, reason }) {
+  const t = useTheme();
+  const permanent = new Date(until).getFullYear() >= 9000;
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 24,
+        backgroundColor: t.bg,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: "700",
+          marginBottom: 12,
+          color: t.text,
+        }}
+      >
+        Account suspended
+      </Text>
+      <Text style={{ fontSize: 16, textAlign: "center", color: t.muted }}>
+        {permanent
+          ? "Your account has been suspended permanently."
+          : `Your account is suspended until ${formatDateTime(until)}.`}
+      </Text>
+      {!!reason && (
+        <Text style={{ marginTop: 8, color: t.muted, textAlign: "center" }}>
+          {reason}
+        </Text>
+      )}
+      <Pressable onPress={() => signOut()} style={{ marginTop: 24 }}>
+        <Text style={{ color: t.primary, fontSize: 16, fontWeight: "600" }}>
+          Sign out
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function SignedInApp() {
+  const t = useTheme();
   const { profile, loading, error, reload, setupRole } = useProfile();
+
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: t.primary,
+      background: t.bg,
+      card: t.headerBg,
+      text: t.text,
+      border: t.border,
+    },
+  };
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator size="large" />
+      <View
+        style={{ flex: 1, justifyContent: "center", backgroundColor: t.bg }}
+      >
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
@@ -65,27 +125,44 @@ function SignedInApp() {
           justifyContent: "center",
           alignItems: "center",
           padding: 24,
+          backgroundColor: t.bg,
         }}
       >
-        <Text style={{ fontSize: 16, marginBottom: 16 }}>{error}</Text>
+        <Text style={{ fontSize: 16, marginBottom: 16, color: t.text }}>
+          {error}
+        </Text>
         <Pressable onPress={reload}>
-          <Text style={{ color: "#1a73e8", fontSize: 16 }}>Try again</Text>
+          <Text style={{ color: t.primary, fontSize: 16, fontWeight: "600" }}>
+            Try again
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => signOut()} style={{ marginTop: 20 }}>
+          <Text style={{ color: t.danger, fontSize: 16 }}>Sign out</Text>
         </Pressable>
       </View>
+    );
+  }
+
+  if (profile?.bannedUntil && new Date(profile.bannedUntil) > new Date()) {
+    return (
+      <BannedScreen until={profile.bannedUntil} reason={profile.banReason} />
     );
   }
 
   if (!profile || setupRole !== null) return <OnboardingScreen />;
 
   return (
-    <NavigationContainer>
-      <Drawer.Navigator
-        drawerContent={(props) => <CustomDrawer {...props} />}
-        screenOptions={{ headerShown: false }}
-      >
-        <Drawer.Screen name="Home" component={HomeSwitch} />
-      </Drawer.Navigator>
-    </NavigationContainer>
+    <>
+      <StatusBar style={t.mode === "dark" ? "light" : "dark"} />
+      <NavigationContainer theme={navTheme}>
+        <Drawer.Navigator
+          drawerContent={(props) => <CustomDrawer {...props} />}
+          screenOptions={{ headerShown: false }}
+        >
+          <Drawer.Screen name="Home" component={HomeSwitch} />
+        </Drawer.Navigator>
+      </NavigationContainer>
+    </>
   );
 }
 

@@ -16,52 +16,56 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   startVerification,
   refreshVerification,
+  setProfileVisibility,
 } from "../../graphql/operations";
 import { useProfile } from "../../context/ProfileContext";
 import { formatDateTime } from "../../utils/format";
-import MenuButton from "../../components/MenuButton";
-import { setProfileVisibility } from "../../graphql/operations";
 import ProfileBadge from "../../components/ProfileBadge";
+import ScreenHeader from "../../components/ScreenHeader";
+import { useTheme, useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
 const PRIVACY_URL = "https://didit.me/terms/verification-privacy-notice";
 const TERMS_URL = "https://didit.me/terms/identity-verification";
 
+// colorKey verweist auf eine Farbe im Theme
 const INFO = {
   NONE: {
     title: "Not verified",
     text: "Verify your identity to offer or request rides.",
-    color: "#757575",
+    colorKey: "muted",
   },
   PENDING: {
     title: "Verification in progress",
     text: "Finish the steps in the verification window, then check your status.",
-    color: "#ef6c00",
+    colorKey: "primary",
   },
   IN_REVIEW: {
     title: "Being reviewed",
     text: "Your documents are being checked manually. Check again later.",
-    color: "#ef6c00",
+    colorKey: "primary",
   },
   APPROVED: {
     title: "Verified",
     text: "Your identity is verified.",
-    color: "#2e7d32",
+    colorKey: "accent",
   },
   DECLINED: {
     title: "Verification failed",
     text: "We could not verify your identity. You can try again with a valid document.",
-    color: "#c62828",
+    colorKey: "danger",
   },
   EXPIRED: {
     title: "Verification expired",
     text: "Your verification session expired. Please start again.",
-    color: "#c62828",
+    colorKey: "danger",
   },
 };
 
 export default function Verification() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const { profile, applyProfile } = useProfile();
   const status = profile.verificationStatus || "NONE";
@@ -96,15 +100,11 @@ export default function Verification() {
       setChecking(true);
       try {
         const res = await client.graphql({ query: refreshVerification });
-        applyProfile(res.data.refreshVerification);
+        applyProfile((prev) => ({ ...prev, ...res.data.refreshVerification }));
       } catch (e) {
-        console.log("START VERIFICATION ERROR:", e.errors ?? e);
+        console.log("REFRESH VERIFICATION ERROR:", e.errors ?? e);
         const msg = e.errors?.[0]?.message ?? "Please try again.";
-        if (msg.includes("already verified")) {
-          await refresh(true); // sync the status from the server
-        } else {
-          Alert.alert("Could not start", msg);
-        }
+        if (!silent) Alert.alert("Could not check status", msg);
       } finally {
         setChecking(false);
       }
@@ -128,10 +128,12 @@ export default function Verification() {
       await refresh(true);
     } catch (e) {
       console.log("START VERIFICATION ERROR:", e.errors ?? e);
-      Alert.alert(
-        "Could not start",
-        e.errors?.[0]?.message ?? "Please try again.",
-      );
+      const msg = e.errors?.[0]?.message ?? "Please try again.";
+      if (msg.includes("already verified")) {
+        await refresh(true); // sync the status from the server
+      } else {
+        Alert.alert("Could not start", msg);
+      }
     } finally {
       setBusy(false);
     }
@@ -140,18 +142,15 @@ export default function Verification() {
   const canStart = status !== "APPROVED" && status !== "IN_REVIEW";
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Identity verification</Text>
-        <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />
-      </View>
+    <View style={styles.screen}>
+      <ScreenHeader
+        title="Identity verification"
+        onBack={() => navigation.goBack()}
+      />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <View style={styles.card}>
-          <Text style={[styles.status, { color: info.color }]}>
+          <Text style={[styles.status, { color: t[info.colorKey] }]}>
             {info.title}
           </Text>
           <Text style={styles.text}>{info.text}</Text>
@@ -161,6 +160,7 @@ export default function Verification() {
             </Text>
           )}
         </View>
+
         {status === "APPROVED" && (
           <View style={[styles.card, { marginTop: 16 }]}>
             <Text style={styles.heading}>My verified profile</Text>
@@ -176,6 +176,7 @@ export default function Verification() {
                 value={!!profile.profileVisible}
                 onValueChange={onToggleVisible}
                 disabled={savingVisible}
+                trackColor={{ true: t.primary, false: t.border }}
               />
               <Text style={styles.consentText}>
                 Show my photo and age to other verified users when we match.
@@ -187,6 +188,7 @@ export default function Verification() {
             </Text>
           </View>
         )}
+
         {canStart && (
           <View style={{ marginTop: 16 }}>
             <Text style={styles.heading}>How it works</Text>
@@ -207,7 +209,11 @@ export default function Verification() {
             </Pressable>
 
             <View style={styles.consentRow}>
-              <Switch value={consent} onValueChange={setConsent} />
+              <Switch
+                value={consent}
+                onValueChange={setConsent}
+                trackColor={{ true: t.primary, false: t.border }}
+              />
               <Text style={styles.consentText}>
                 I agree that my ID document and my face are processed to verify
                 my identity.
@@ -220,7 +226,7 @@ export default function Verification() {
               onPress={onStart}
             >
               {busy ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={t.onPrimary} />
               ) : (
                 <Text style={styles.buttonText}>
                   {status === "PENDING"
@@ -239,7 +245,7 @@ export default function Verification() {
             onPress={() => refresh(false)}
           >
             {checking ? (
-              <ActivityIndicator />
+              <ActivityIndicator color={t.primary} />
             ) : (
               <Text style={styles.secondaryText}>Check status</Text>
             )}
@@ -250,37 +256,37 @@ export default function Verification() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { padding: 16, paddingTop: 56, backgroundColor: "#000" },
-  back: { color: "#fff", fontSize: 16, marginBottom: 8 },
-  title: { color: "#fff", fontSize: 22, fontWeight: "700" },
-  card: {
-    padding: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  status: { fontSize: 20, fontWeight: "700" },
-  text: { color: "#444", marginTop: 6, fontSize: 15 },
-  meta: { color: "#777", marginTop: 6 },
-  heading: { fontSize: 17, fontWeight: "700" },
-  link: { color: "#1a73e8", marginTop: 8, fontSize: 15 },
-  consentRow: { flexDirection: "row", alignItems: "center", marginTop: 16 },
-  consentText: { flex: 1, marginLeft: 12, fontSize: 14, color: "#333" },
-  button: {
-    backgroundColor: "#000",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  secondary: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    alignItems: "center",
-  },
-  secondaryText: { fontWeight: "600" },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    card: {
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    status: { fontSize: 20, fontWeight: "700" },
+    text: { color: t.muted, marginTop: 6, fontSize: 15 },
+    meta: { color: t.muted, marginTop: 6 },
+    heading: { fontSize: 17, fontWeight: "700", color: t.text },
+    link: { color: t.primary, marginTop: 8, fontSize: 15, fontWeight: "600" },
+    consentRow: { flexDirection: "row", alignItems: "center", marginTop: 16 },
+    consentText: { flex: 1, marginLeft: 12, fontSize: 14, color: t.text },
+    button: {
+      backgroundColor: t.primary,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 16,
+    },
+    buttonText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    secondary: {
+      marginTop: 16,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: t.chip,
+      alignItems: "center",
+    },
+    secondaryText: { fontWeight: "600", color: t.chipText },
+  });

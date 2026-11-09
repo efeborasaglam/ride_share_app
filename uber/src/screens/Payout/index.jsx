@@ -9,18 +9,21 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { generateClient } from "aws-amplify/api";
+import { fetchUserAttributes } from "aws-amplify/auth";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   startPayoutOnboarding,
   refreshPayoutStatus,
 } from "../../graphql/operations";
 import { useProfile } from "../../context/ProfileContext";
-import MenuButton from "../../components/MenuButton";
-import { fetchUserAttributes } from "aws-amplify/auth";
+import { useTheme, useThemedStyles } from "../../theme";
+import ScreenHeader from "../../components/ScreenHeader";
 
 const client = generateClient();
 
 export default function Payouts() {
+  const t = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const { profile, applyProfile } = useProfile();
   const ready = !!profile.payoutsReady;
@@ -77,19 +80,13 @@ export default function Payouts() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Payouts</Text>
-        <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />
-      </View>
+    <View style={styles.screen}>
+      <ScreenHeader title="Payouts" onBack={() => navigation.goBack()} />
 
       <View style={{ padding: 16 }}>
         <View style={styles.card}>
           <Text
-            style={[styles.status, { color: ready ? "#2e7d32" : "#ef6c00" }]}
+            style={[styles.status, { color: ready ? t.accent : t.primary }]}
           >
             {ready ? "Payouts active" : "Payouts not set up"}
           </Text>
@@ -117,7 +114,7 @@ export default function Payouts() {
             onPress={onStart}
           >
             {busy ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={t.onPrimary} />
             ) : (
               <Text style={styles.buttonText}>Set up payouts</Text>
             )}
@@ -131,7 +128,7 @@ export default function Payouts() {
             onPress={() => refresh(false)}
           >
             {checking ? (
-              <ActivityIndicator />
+              <ActivityIndicator color={t.primary} />
             ) : (
               <Text style={styles.secondaryText}>Check status</Text>
             )}
@@ -142,33 +139,33 @@ export default function Payouts() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { padding: 16, paddingTop: 56, backgroundColor: "#000" },
-  back: { color: "#fff", fontSize: 16, marginBottom: 8 },
-  title: { color: "#fff", fontSize: 22, fontWeight: "700" },
-  card: {
-    padding: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  status: { fontSize: 20, fontWeight: "700" },
-  text: { color: "#444", marginTop: 6, fontSize: 15 },
-  warn: { color: "#c62828", marginTop: 16 },
-  button: {
-    backgroundColor: "#000",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  secondary: {
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    alignItems: "center",
-  },
-  secondaryText: { fontWeight: "600" },
-});
+const makeStyles = (t) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    card: {
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    status: { fontSize: 20, fontWeight: "700" },
+    text: { color: t.muted, marginTop: 6, fontSize: 15 },
+    warn: { color: t.danger, marginTop: 16 },
+    button: {
+      backgroundColor: t.primary,
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 16,
+    },
+    buttonText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    secondary: {
+      marginTop: 12,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: t.chip,
+      alignItems: "center",
+    },
+    secondaryText: { fontWeight: "600", color: t.chipText },
+  });
