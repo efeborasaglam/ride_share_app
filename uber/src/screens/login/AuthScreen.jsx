@@ -19,6 +19,7 @@ import {
 } from "aws-amplify/auth";
 import Logo from "../../components/Logo";
 import { useTheme, useThemedStyles } from "../../theme";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function AuthScreen() {
   const t = useTheme();
@@ -30,6 +31,7 @@ export default function AuthScreen() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -155,27 +157,55 @@ export default function AuthScreen() {
         />
 
         {(mode === "signIn" || mode === "signUp") && (
-          <TextInput
-            style={styles.input}
-            placeholder="Passwort"
-            placeholderTextColor={t.muted}
-            secureTextEntry
-            autoCapitalize="none"
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View style={styles.inputWrap}>
+            <TextInput
+              style={styles.inputInner}
+              placeholder="Passwort"
+              placeholderTextColor={t.muted}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <Pressable
+              onPress={() => setShowPassword((v) => !v)}
+              hitSlop={10}
+              style={styles.eye}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color={t.muted}
+              />
+            </Pressable>
+          </View>
         )}
 
         {mode === "newPassword" && (
-          <TextInput
-            style={styles.input}
-            placeholder="Neues Passwort"
-            placeholderTextColor={t.muted}
-            secureTextEntry
-            autoCapitalize="none"
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
+          <View style={styles.inputWrap}>
+            <TextInput
+              style={styles.inputInner}
+              placeholder="Neues Passwort"
+              placeholderTextColor={t.muted}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+            <Pressable
+              onPress={() => setShowPassword((v) => !v)}
+              hitSlop={10}
+              style={styles.eye}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color={t.muted}
+              />
+            </Pressable>
+          </View>
         )}
 
         {mode === "confirm" && (
@@ -260,4 +290,20 @@ const makeStyles = (t) =>
     },
     error: { color: t.danger, marginBottom: 8 },
     info: { color: t.accent, marginBottom: 8 },
+    inputWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      borderRadius: 10,
+      marginBottom: 12,
+    },
+    inputInner: {
+      flex: 1,
+      color: t.text,
+      padding: 12,
+      fontSize: 16,
+    },
+    eye: { paddingHorizontal: 12 },
   });
