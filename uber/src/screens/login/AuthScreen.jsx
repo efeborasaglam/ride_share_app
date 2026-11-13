@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import {
   signUp,
@@ -126,92 +128,99 @@ export default function AuthScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: t.bg }}
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: t.bg }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <Logo size={140} style={{ alignSelf: "center", marginBottom: 24 }} />
-
-      <Text style={styles.title}>{TITLES[mode]}</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="E-Mail"
-        placeholderTextColor={t.muted}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        editable={mode === "signIn" || mode === "signUp"}
-      />
-
-      {(mode === "signIn" || mode === "signUp") && (
-        <TextInput
-          style={styles.input}
-          placeholder="Passwort"
-          placeholderTextColor={t.muted}
-          secureTextEntry
-          autoCapitalize="none"
-          value={password}
-          onChangeText={setPassword}
-        />
-      )}
-
-      {mode === "newPassword" && (
-        <TextInput
-          style={styles.input}
-          placeholder="Neues Passwort"
-          placeholderTextColor={t.muted}
-          secureTextEntry
-          autoCapitalize="none"
-          value={newPassword}
-          onChangeText={setNewPassword}
-        />
-      )}
-
-      {mode === "confirm" && (
-        <TextInput
-          style={styles.input}
-          placeholder="Code aus der E-Mail"
-          placeholderTextColor={t.muted}
-          keyboardType="number-pad"
-          value={code}
-          onChangeText={setCode}
-        />
-      )}
-
-      {!!error && <Text style={styles.error}>{error}</Text>}
-      {!!info && <Text style={styles.info}>{info}</Text>}
-
-      <Pressable
-        style={[styles.button, loading && { opacity: 0.6 }]}
-        disabled={loading}
-        onPress={HANDLERS[mode]}
+      <ScrollView
+        style={{ backgroundColor: t.bg }}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
       >
-        {loading ? (
-          <ActivityIndicator color={t.onPrimary} />
-        ) : (
-          <Text style={styles.buttonText}>{BUTTONS[mode]}</Text>
-        )}
-      </Pressable>
+        <Logo size={140} style={{ alignSelf: "center", marginBottom: 24 }} />
 
-      {mode === "confirm" && (
-        <Pressable onPress={handleResend}>
-          <Text style={styles.link}>Code erneut senden</Text>
+        <Text style={styles.title}>{TITLES[mode]}</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="E-Mail"
+          placeholderTextColor={t.muted}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          editable={mode === "signIn" || mode === "signUp"}
+        />
+
+        {(mode === "signIn" || mode === "signUp") && (
+          <TextInput
+            style={styles.input}
+            placeholder="Passwort"
+            placeholderTextColor={t.muted}
+            secureTextEntry
+            autoCapitalize="none"
+            value={password}
+            onChangeText={setPassword}
+          />
+        )}
+
+        {mode === "newPassword" && (
+          <TextInput
+            style={styles.input}
+            placeholder="Neues Passwort"
+            placeholderTextColor={t.muted}
+            secureTextEntry
+            autoCapitalize="none"
+            value={newPassword}
+            onChangeText={setNewPassword}
+          />
+        )}
+
+        {mode === "confirm" && (
+          <TextInput
+            style={styles.input}
+            placeholder="Code aus der E-Mail"
+            placeholderTextColor={t.muted}
+            keyboardType="number-pad"
+            value={code}
+            onChangeText={setCode}
+          />
+        )}
+
+        {!!error && <Text style={styles.error}>{error}</Text>}
+        {!!info && <Text style={styles.info}>{info}</Text>}
+
+        <Pressable
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          disabled={loading}
+          onPress={HANDLERS[mode]}
+        >
+          {loading ? (
+            <ActivityIndicator color={t.onPrimary} />
+          ) : (
+            <Text style={styles.buttonText}>{BUTTONS[mode]}</Text>
+          )}
         </Pressable>
-      )}
-      {mode === "signIn" && (
-        <Pressable onPress={() => setMode("signUp")}>
-          <Text style={styles.link}>Noch kein Konto? Registrieren</Text>
-        </Pressable>
-      )}
-      {mode !== "signIn" && (
-        <Pressable onPress={() => setMode("signIn")}>
-          <Text style={styles.link}>Zurück zur Anmeldung</Text>
-        </Pressable>
-      )}
-    </ScrollView>
+
+        {mode === "confirm" && (
+          <Pressable onPress={handleResend}>
+            <Text style={styles.link}>Code erneut senden</Text>
+          </Pressable>
+        )}
+        {mode === "signIn" && (
+          <Pressable onPress={() => setMode("signUp")}>
+            <Text style={styles.link}>Noch kein Konto? Registrieren</Text>
+          </Pressable>
+        )}
+        {mode !== "signIn" && (
+          <Pressable onPress={() => setMode("signIn")}>
+            <Text style={styles.link}>Zurück zur Anmeldung</Text>
+          </Pressable>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

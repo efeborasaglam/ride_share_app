@@ -223,12 +223,13 @@ export default function TripDetails() {
               value={date}
               mode="datetime"
               display="compact"
+              themeVariant="dark"
               minimumDate={new Date()}
               onChange={(_, d) => d && setDate(d)}
             />
           ) : (
             <Pressable onPress={openAndroidPicker} style={styles.dateButton}>
-              <Text>{formatDateTime(date)}</Text>
+              <Text style={{ color: "#fff" }}>{formatDateTime(date)}</Text>
             </Pressable>
           )}
         </View>
