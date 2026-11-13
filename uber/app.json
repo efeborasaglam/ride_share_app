@@ -21,7 +21,9 @@
         {
           "android": {
             "packagingOptions": {
-              "exclude": ["META-INF/DEPENDENCIES"]
+              "exclude": [
+                "META-INF/DEPENDENCIES"
+              ]
             },
             "extraProguardRules": "-dontwarn com.stripe.android.pushProvisioning.**",
             "enableMinifyInReleaseBuilds": false,
@@ -55,6 +57,12 @@
       "eas": {
         "projectId": "e2989513-e385-48f9-90cb-65eb90aad98e"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e2989513-e385-48f9-90cb-65eb90aad98e"
     }
   }
 }
