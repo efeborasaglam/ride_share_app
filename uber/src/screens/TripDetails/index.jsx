@@ -29,6 +29,7 @@ import {
   splitPrice,
 } from "../../utils/format";
 import { useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
@@ -39,6 +40,7 @@ const defaultDeparture = () => {
 };
 
 export default function TripDetails() {
+  const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
@@ -70,8 +72,7 @@ export default function TripDetails() {
   const [publishing, setPublishing] = useState(false);
   const [priceText, setPriceText] = useState("5.00");
   const priceCents = Math.round(parseFloat(priceText.replace(",", ".")) * 100);
-  const priceValid =
-    Number.isFinite(priceCents) && priceCents >= 100 && priceCents <= 10000;
+  const priceValid = Number.isFinite(priceCents) && priceCents >= 100;
   const split = priceValid ? splitPrice(priceCents) : null;
 
   useEffect(() => {
@@ -128,7 +129,7 @@ export default function TripDetails() {
   const onPublish = async () => {
     if (!routeInfo) return;
     if (date.getTime() < Date.now() + 5 * 60 * 1000) {
-      Alert.alert("Departure time", "Please choose a time in the future.");
+      Alert.alert(t("tripdetails.departuretime"), t("tripdetails.chosetime"));
       return;
     }
     setPublishing(true);
@@ -157,10 +158,7 @@ export default function TripDetails() {
       console.log("PUBLISH priceCents:", priceCents, "valid:", priceValid);
     } catch (e) {
       console.log("CREATE TRIP ERROR:", e.errors ?? e);
-      Alert.alert(
-        "Error",
-        e.errors?.[0]?.message ?? "Could not publish your trip.",
-      );
+      Alert.alert("Error", e.errors?.[0]?.message ?? t("tripdetails.error"));
     } finally {
       setPublishing(false);
     }
@@ -191,10 +189,13 @@ export default function TripDetails() {
             />
           )}
           <Marker coordinate={origin} title="Start" />
-          <Marker coordinate={destination} title="Destination" />
+          <Marker
+            coordinate={destination}
+            title={t("tripdetails.destination")}
+          />
         </MapView>
         <Pressable style={styles.back} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>‹ {t("tripdetails.back")}</Text>
         </Pressable>
       </View>
 
@@ -204,7 +205,9 @@ export default function TripDetails() {
         </Text>
 
         {routeError ? (
-          <Text style={styles.error}>Route error: {routeError}</Text>
+          <Text style={styles.error}>
+            {t("tripdetails.routeerror")}: {routeError}
+          </Text>
         ) : routeInfo ? (
           <Text style={styles.meta}>
             {Math.round(routeInfo.distanceMeters / 1000)} km ·{" "}
@@ -217,7 +220,7 @@ export default function TripDetails() {
         )}
 
         <View style={styles.row}>
-          <Text style={styles.label}>Departure</Text>
+          <Text style={styles.label}>{t("tripdetails.departure")}</Text>
           {Platform.OS === "ios" ? (
             <DateTimePicker
               value={date}
@@ -235,7 +238,7 @@ export default function TripDetails() {
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Seats</Text>
+          <Text style={styles.label}>{t("rolehome.seats")}</Text>
           <View style={styles.stepper}>
             <Pressable
               style={styles.stepBtn}
@@ -254,7 +257,7 @@ export default function TripDetails() {
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Price per seat</Text>
+          <Text style={styles.label}>{t("tripdetails.priceperseat")}</Text>
           <View style={styles.priceBox}>
             <TextInput
               style={styles.priceInput}
@@ -276,20 +279,21 @@ export default function TripDetails() {
           <InputAccessoryView nativeID="priceDone">
             <View style={styles.accessory}>
               <Pressable onPress={Keyboard.dismiss}>
-                <Text style={styles.accessoryText}>Done</Text>
+                <Text style={styles.accessoryText}>
+                  {t("tripdetails.done")}
+                </Text>
               </Pressable>
             </View>
           </InputAccessoryView>
         )}
         {split ? (
           <Text style={styles.meta}>
-            You receive {formatPrice(split.driver)} · platform fee{" "}
+            {t("tripdetails.receive")} {formatPrice(split.driver)} ·{" "}
+            {t("tripdetails.plattform")} {t("tripdetails.fee")}{" "}
             {formatPrice(split.fee)} (20%)
           </Text>
         ) : (
-          <Text style={styles.error}>
-            Enter a price between 1.00 and 100.00
-          </Text>
+          <Text style={styles.error}>{t("tripdetails.price")}</Text>
         )}
 
         <Pressable
@@ -303,7 +307,9 @@ export default function TripDetails() {
           {publishing ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Publish trip</Text>
+            <Text style={styles.buttonText}>
+              {t("tripdetails.publishtrip")}
+            </Text>
           )}
         </Pressable>
       </View>

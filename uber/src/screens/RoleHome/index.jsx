@@ -6,8 +6,10 @@ import MenuButton from "../../components/MenuButton";
 import Logo from "../../components/Logo";
 import { useProfile } from "../../context/ProfileContext";
 import { useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 export default function RoleHome() {
+  const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const { profile } = useProfile();
   const navigation = useNavigation();
@@ -18,12 +20,12 @@ export default function RoleHome() {
   const goVerified = (screen, params) => {
     if (!verified) {
       Alert.alert(
-        "Verification required",
-        `Please verify your identity before you ${isDriver ? "offer" : "request"} rides.`,
+        t("rolehome.verificationrequired"),
+        `${t("Please verify your identity before you")} ${isDriver ? t("rolehome.offer") : t("rolehome.request")} ${t("rolehome.requestride")}.`,
         [
-          { text: "Later", style: "cancel" },
+          { text: t("rolehome.later"), style: "cancel" },
           {
-            text: "Verify now",
+            text: t("rolehome.verifynow"),
             onPress: () => navigation.navigate("Verification"),
           },
         ],
@@ -31,14 +33,13 @@ export default function RoleHome() {
       return;
     }
     if (isDriver && !profile.payoutsReady) {
-      Alert.alert(
-        "Set up payouts",
-        "To offer rides you need a payout account.",
-        [
-          { text: "Later", style: "cancel" },
-          { text: "Set up", onPress: () => navigation.navigate("Payouts") },
-        ],
-      );
+      Alert.alert(t("rolehome.setuppayout"), t("rolehome.offerridespayout"), [
+        { text: t("rolehome.later"), style: "cancel" },
+        {
+          text: t("rolehome.setup"),
+          onPress: () => navigation.navigate("Payouts"),
+        },
+      ]);
       return;
     }
     navigation.navigate(screen, params);
@@ -50,14 +51,14 @@ export default function RoleHome() {
         <Logo size={44} />
         <View style={styles.headerTexts}>
           <Text style={styles.title}>
-            {isDriver ? "Driver mode" : "Passenger mode"}
+            {isDriver ? t("rolehome.drivermode") : "Passenger mode"}
           </Text>
           <Text style={styles.sub} numberOfLines={1}>
             {profile.displayName}
             {isDriver && profile.carSeats
-              ? ` · Seats: ${profile.carSeats}`
+              ? ` · ${t("rolehome.seats")}: ${profile.carSeats}`
               : ""}
-            {verified ? " · Verified ✓" : ""}
+            {verified ? ` · ${t("rolehome.verified")} ✓` : ""}
           </Text>
         </View>
         <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />
@@ -70,8 +71,8 @@ export default function RoleHome() {
         >
           <Text style={styles.hintText}>
             {verified
-              ? "Turn on photo and age sharing to use rides ›"
-              : `Verify your identity to ${isDriver ? "offer" : "request"} rides ›`}
+              ? t("rolehome.activate")
+              : `${t("rolehome.idenity1")} ${isDriver ? t("rolehome.offer") : t("rolehome.request")} ${t("rolehome.requestride")} ›`}
           </Text>
         </Pressable>
       )}
@@ -89,19 +90,19 @@ export default function RoleHome() {
                 goVerified("DestinationSearch", { next: "TripDetails" })
               }
             >
-              <Text style={styles.primaryText}>Offer a ride</Text>
+              <Text style={styles.primaryText}>{t("rolehome.offerride")}</Text>
             </Pressable>
             <Pressable
               style={styles.linkBtn}
               onPress={() => navigation.navigate("DriverRequests")}
             >
-              <Text style={styles.linkText}>Requests</Text>
+              <Text style={styles.linkText}>{t("rolehome.requests")}</Text>
             </Pressable>
             <Pressable
               style={styles.linkBtn}
               onPress={() => navigation.navigate("MyTrips")}
             >
-              <Text style={styles.linkText}>My trips</Text>
+              <Text style={styles.linkText}>{t("rolehome.mytrips")}</Text>
             </Pressable>
           </>
         ) : (
@@ -112,13 +113,13 @@ export default function RoleHome() {
                 goVerified("DestinationSearch", { next: "MatchResults" })
               }
             >
-              <Text style={styles.primaryText}>Find a ride</Text>
+              <Text style={styles.primaryText}>{t("rolehome.findaride")}</Text>
             </Pressable>
             <Pressable
               style={styles.linkBtn}
               onPress={() => navigation.navigate("MyRequests")}
             >
-              <Text style={styles.linkText}>My requests</Text>
+              <Text style={styles.linkText}>{t("rolehome.myrequests")}</Text>
             </Pressable>
           </>
         )}

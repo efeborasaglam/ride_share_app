@@ -20,9 +20,11 @@ import {
 import Logo from "../../components/Logo";
 import { useTheme, useThemedStyles } from "../../theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 export default function AuthScreen() {
-  const t = useTheme();
+  const { t } = useTranslation();
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const [mode, setMode] = useState("signIn"); // signIn | signUp | confirm | newPassword
   const [email, setEmail] = useState("");
@@ -60,12 +62,10 @@ export default function AuthScreen() {
       const step = res.nextStep?.signInStep;
       if (step === "CONFIRM_SIGN_UP") {
         await resendSignUpCode({ username: email.trim() });
-        setInfo(
-          "Bitte bestätige zuerst deine E-Mail. Wir haben dir einen neuen Code geschickt.",
-        );
+        setInfo(t("auth.pleaseemail"));
         setMode("confirm");
       } else if (step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
-        setInfo("Bitte lege ein neues Passwort fest.");
+        setInfo(t("auth.shitpassword"));
         setMode("newPassword");
       } else if (step && step !== "DONE") {
         setError(`Nicht unterstützter Anmeldeschritt: ${step}`);
@@ -89,7 +89,7 @@ export default function AuthScreen() {
         password,
         options: { userAttributes: { email: email.trim() } },
       });
-      setInfo("Wir haben dir einen Code per E-Mail geschickt.");
+      setInfo(t("auth.codeemail"));
       setMode("confirm");
     });
 
@@ -99,7 +99,7 @@ export default function AuthScreen() {
         username: email.trim(),
         confirmationCode: code.trim(),
       });
-      setInfo("E-Mail bestätigt. Du kannst dich jetzt anmelden.");
+      setInfo(t("auth.alright"));
       setCode("");
       setMode("signIn");
     });
@@ -107,20 +107,20 @@ export default function AuthScreen() {
   const handleResend = () =>
     run(async () => {
       await resendSignUpCode({ username: email.trim() });
-      setInfo("Neuer Code gesendet.");
+      setInfo(t("auth.newcode"));
     });
 
   const TITLES = {
-    signIn: "Anmelden",
-    signUp: "Registrieren",
-    confirm: "E-Mail bestätigen",
-    newPassword: "Neues Passwort festlegen",
+    signIn: t("auth.login"),
+    signUp: t("auth.register"),
+    confirm: t("auth.emailsayok"),
+    newPassword: t("auth.newpassword"),
   };
   const BUTTONS = {
-    signIn: "Anmelden",
-    signUp: "Konto erstellen",
-    confirm: "Bestätigen",
-    newPassword: "Passwort speichern",
+    signIn: t("auth.login"),
+    signUp: t("auth.createaccount"),
+    confirm: t("auth.confirm"),
+    newPassword: t("auth.savepassword"),
   };
   const HANDLERS = {
     signIn: handleSignIn,
@@ -131,12 +131,12 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: t.bg }}
+      style={{ flex: 1, backgroundColor: s.bg }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <ScrollView
-        style={{ backgroundColor: t.bg }}
+        style={{ backgroundColor: s.bg }}
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
@@ -147,8 +147,8 @@ export default function AuthScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="E-Mail"
-          placeholderTextColor={t.muted}
+          placeholder={t("auth.email")}
+          placeholderTextColor={s.muted}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
@@ -160,8 +160,8 @@ export default function AuthScreen() {
           <View style={styles.inputWrap}>
             <TextInput
               style={styles.inputInner}
-              placeholder="Passwort"
-              placeholderTextColor={t.muted}
+              placeholder={t("auth.password")}
+              placeholderTextColor={s.muted}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
@@ -176,7 +176,7 @@ export default function AuthScreen() {
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={22}
-                color={t.muted}
+                color={s.muted}
               />
             </Pressable>
           </View>
@@ -186,8 +186,8 @@ export default function AuthScreen() {
           <View style={styles.inputWrap}>
             <TextInput
               style={styles.inputInner}
-              placeholder="Neues Passwort"
-              placeholderTextColor={t.muted}
+              placeholder={t('auth.newpassword"')}
+              placeholderTextColor={s.muted}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
@@ -202,7 +202,7 @@ export default function AuthScreen() {
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={22}
-                color={t.muted}
+                color={s.muted}
               />
             </Pressable>
           </View>
@@ -211,8 +211,8 @@ export default function AuthScreen() {
         {mode === "confirm" && (
           <TextInput
             style={styles.input}
-            placeholder="Code aus der E-Mail"
-            placeholderTextColor={t.muted}
+            placeholder={t("auth.code")}
+            placeholderTextColor={s.muted}
             keyboardType="number-pad"
             value={code}
             onChangeText={setCode}
@@ -228,7 +228,7 @@ export default function AuthScreen() {
           onPress={HANDLERS[mode]}
         >
           {loading ? (
-            <ActivityIndicator color={t.onPrimary} />
+            <ActivityIndicator color={s.onPrimary} />
           ) : (
             <Text style={styles.buttonText}>{BUTTONS[mode]}</Text>
           )}
@@ -241,12 +241,12 @@ export default function AuthScreen() {
         )}
         {mode === "signIn" && (
           <Pressable onPress={() => setMode("signUp")}>
-            <Text style={styles.link}>Noch kein Konto? Registrieren</Text>
+            <Text style={styles.link}>{t("auth.noaccount")}</Text>
           </Pressable>
         )}
         {mode !== "signIn" && (
           <Pressable onPress={() => setMode("signIn")}>
-            <Text style={styles.link}>Zurück zur Anmeldung</Text>
+            <Text style={styles.link}>{t("auth.goback")}</Text>
           </Pressable>
         )}
       </ScrollView>
@@ -254,54 +254,54 @@ export default function AuthScreen() {
   );
 }
 
-const makeStyles = (t) =>
+const makeStyles = (s) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
       justifyContent: "center",
       padding: 24,
       paddingTop: 64,
-      backgroundColor: t.bg,
+      backgroundColor: s.bg,
     },
-    title: { fontSize: 28, fontWeight: "700", marginBottom: 24, color: t.text },
+    title: { fontSize: 28, fontWeight: "700", marginBottom: 24, color: s.text },
     input: {
       borderWidth: 1,
-      borderColor: t.border,
-      backgroundColor: t.surface,
-      color: t.text,
+      borderColor: s.border,
+      backgroundColor: s.surface,
+      color: s.text,
       borderRadius: 10,
       padding: 12,
       marginBottom: 12,
       fontSize: 16,
     },
     button: {
-      backgroundColor: t.primary,
+      backgroundColor: s.primary,
       padding: 14,
       borderRadius: 10,
       alignItems: "center",
       marginTop: 4,
     },
-    buttonText: { color: t.onPrimary, fontSize: 16, fontWeight: "600" },
+    buttonText: { color: s.onPrimary, fontSize: 16, fontWeight: "600" },
     link: {
-      color: t.primary,
+      color: s.primary,
       textAlign: "center",
       marginTop: 16,
       fontWeight: "600",
     },
-    error: { color: t.danger, marginBottom: 8 },
-    info: { color: t.accent, marginBottom: 8 },
+    error: { color: s.danger, marginBottom: 8 },
+    info: { color: s.accent, marginBottom: 8 },
     inputWrap: {
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: t.border,
-      backgroundColor: t.surface,
+      borderColor: s.border,
+      backgroundColor: s.surface,
       borderRadius: 10,
       marginBottom: 12,
     },
     inputInner: {
       flex: 1,
-      color: t.text,
+      color: s.text,
       padding: 12,
       fontSize: 16,
     },

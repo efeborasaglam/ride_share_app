@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import GooglePlacesAutocomplete from "./PlaceSearch";
 import PlaceRow from "./PlaceRow";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const homePlace = {
   description: "Home",
@@ -15,6 +16,7 @@ const workPlace = {
   geometry: { location: { lat: 40.9831, lng: 29.0356 } },
 };
 const DestinationSearch = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const [originPlace, setOriginPlace] = useState(null);
@@ -31,14 +33,14 @@ const DestinationSearch = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.container}>
         <GooglePlacesAutocomplete
-          placeholder="Where From?"
+          placeholder={t("destinationsearch.where")}
           onPress={(data, details = null) => {
             setOriginPlace({ data, details });
             console.log(data, details);
           }}
           suppressDefaultStyles
           currentLocation={true}
-          currentLocationLabel={"Current location"}
+          currentLocationLabel={t("destinationsearch.current")}
           styles={{
             textInput: styles.textInput,
             container: { ...styles.autocompleteContainer, top: 15 },
@@ -55,7 +57,7 @@ const DestinationSearch = () => {
           predefinedPlaces={[homePlace, workPlace]}
         />
         <GooglePlacesAutocomplete
-          placeholder="Where to?"
+          placeholder={t("destinationsearch.whereto")}
           onPress={(data, details = null) => {
             setDestinationPlace({ data, details });
             console.log(data, details);

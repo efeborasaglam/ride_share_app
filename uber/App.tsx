@@ -7,6 +7,7 @@ import RootNavigator from "./src/navigation/Root";
 import "react-native-get-random-values";
 import { Amplify } from "aws-amplify";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import "./i18n"; // Pfad zu deiner i18n-Datei anpassen
 
 // const { coords } = await Location.getCurrentPositionAsync({});
 
