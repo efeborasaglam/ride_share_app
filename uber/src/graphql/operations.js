@@ -157,6 +157,7 @@ export const listRequestsForMyTrips = /* GraphQL */ `
       dropoffLongitude
       status
       createdAt
+      paymentStatus
     }
   }
 `;
@@ -408,6 +409,17 @@ export const adminUnbanUser = /* GraphQL */ `
     adminUnbanUser(userId: $userId) {
       id
       bannedUntil
+    }
+  }
+`;
+
+export const refundPayment = /* GraphQL */ `
+  mutation RefundPayment($requestId: ID!) {
+    refundPayment(requestId: $requestId) {
+      id
+      status
+      paymentStatus
+      refundedAt
     }
   }
 `;

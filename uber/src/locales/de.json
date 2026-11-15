@@ -64,5 +64,17 @@
   "tripdetails.plattform": "Plattform",
   "tripdetails.fee": "Gebühr",
   "tripdetails.price": "Geben Sie einen Preis ein.",
-  "tripdetails.publishtrip": "Reise veröffentlichen"
+  "tripdetails.publishtrip": "Reise veröffentlichen",
+  "mytrips.couldnotload": "Deine Fahrten konnten nicht geladen werden.",
+  "mytrips.couldnotcancel": "Konnte nicht storniert werden",
+  "mytrips.cancelask": "Diese Reise stornieren?",
+  "mytrips.willbetoldthattripwascancelled": "Fahrgästen mit offenen oder angenommenen Anfragen wird mitgeteilt, dass die Fahrt storniert wurde.",
+  "mytrips.keeptrip": "Reise beibehalten",
+  "mytrips.canceltrip": "Reise stornieren",
+  "mytrips.notrips": "Noch keine Fahrten. Tippe auf dem Startbildschirm auf „Fahrt anbieten“.",
+  "mytrips.seatsleft": "verbleibende Plätze",
+  "mytrips.waiting": "Warten",
+  "mytrips.review": "Überprüfen",
+  "mytrips.pickup": "Abholen",
+  "mytrips.message": "Nachricht"
 }

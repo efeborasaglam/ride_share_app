@@ -143,7 +143,7 @@ export default function CustomDrawer(props) {
         />
 
         <Item
-          label={t('customdrawer.verification"')}
+          label={t("customdrawer.verification")}
           onPress={() => go("Verification")}
         />
         <Item

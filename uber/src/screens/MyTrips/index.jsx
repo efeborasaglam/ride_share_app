@@ -11,10 +11,12 @@ import {
 } from "react-native";
 import { generateClient } from "aws-amplify/api";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import {
   listMyTrips,
   listRequestsForMyTrips,
   cancelTrip,
+  refundPayment,
 } from "../../graphql/operations";
 import {
   formatDateTime,
@@ -22,12 +24,14 @@ import {
   STATUS_COLORS,
   statusLabel,
 } from "../../utils/format";
-import MenuButton from "../../components/MenuButton";
-import { useThemedStyles } from "../../theme";
+import ScreenHeader from "../../components/ScreenHeader";
+import { useTheme, useThemedStyles } from "../../theme";
 
 const client = generateClient();
 
 export default function MyTrips() {
+  const { t } = useTranslation();
+  const theme = useTheme();
   const styles = useThemedStyles(makeStyles);
 
   const navigation = useNavigation();
@@ -47,7 +51,7 @@ export default function MyTrips() {
       setTrips(list);
     } catch (e) {
       console.log("LIST TRIPS ERROR:", e.errors ?? e);
-      setError("Could not load your trips.");
+      setError(t("mytrips.couldnotload"));
     }
     try {
       const res = await client.graphql({ query: listRequestsForMyTrips });
@@ -76,15 +80,41 @@ export default function MyTrips() {
     return map;
   }, [requests]);
 
-  const cancelIt = async (id) => {
-    setBusyId(id);
+  const cancelIt = async (trip) => {
+    setBusyId(trip.id);
     try {
-      await client.graphql({ query: cancelTrip, variables: { id } });
+      // Passagiere, die schon bezahlt haben (vor dem Stornieren merken)
+      const paid = (byTrip[trip.id]?.accepted ?? []).filter(
+        (r) => r.paymentStatus === "PAID",
+      );
+      await client.graphql({ query: cancelTrip, variables: { id: trip.id } });
+
+      let failed = 0;
+      for (const r of paid) {
+        try {
+          await client.graphql({
+            query: refundPayment,
+            variables: { requestId: r.id },
+          });
+        } catch (e) {
+          console.log("REFUND ERROR:", e.errors ?? e);
+          failed += 1;
+        }
+      }
       await load();
+      if (failed > 0) {
+        Alert.alert(
+          t("mytrips.refundpending", { defaultValue: "Refunds pending" }),
+          t("mytrips.refundpendingtext", {
+            defaultValue:
+              "Some refunds could not be completed yet. They will be retried automatically.",
+          }),
+        );
+      }
     } catch (e) {
       console.log("CANCEL TRIP ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not cancel",
+        t("mytrips.couldnotcancel"),
         e.errors?.[0]?.message ?? "Please try again.",
       );
     } finally {
@@ -93,42 +123,45 @@ export default function MyTrips() {
   };
 
   const onCancel = (trip) => {
-    Alert.alert(
-      "Cancel this trip?",
-      "Passengers with open or accepted requests will be told that the trip was cancelled.",
-      [
-        { text: "Keep trip", style: "cancel" },
-        {
-          text: "Cancel trip",
-          style: "destructive",
-          onPress: () => cancelIt(trip.id),
-        },
-      ],
-    );
+    const paidCount = (byTrip[trip.id]?.accepted ?? []).filter(
+      (r) => r.paymentStatus === "PAID",
+    ).length;
+    let message = t("mytrips.willbetoldthattripwascancelled");
+    if (paidCount > 0) {
+      message += t("mytrips.refundwarning", {
+        defaultValue:
+          "\n\nPassengers who already paid are refunded. The refunded amount is taken back from your earnings.",
+      });
+    }
+    Alert.alert(t("mytrips.cancelask"), message, [
+      { text: t("mytrips.keeptrip"), style: "cancel" },
+      {
+        text: t("mytrips.canceltrip"),
+        style: "destructive",
+        onPress: () => cancelIt(trip),
+      },
+    ]);
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.navigate("DriverHome")}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
-        <Text style={styles.title}>My trips</Text>
-        <MenuButton style={{ position: "absolute", top: 56, right: 16 }} />
-      </View>
+    <View style={styles.screen}>
+      <ScreenHeader
+        title={t("rolehome.mytrips")}
+        onBack={() => navigation.navigate("DriverHome")}
+      />
       {!!error && <Text style={styles.error}>{error}</Text>}
       <FlatList
         data={trips}
-        keyExtractor={(t) => t.id}
+        keyExtractor={(x) => x.id}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={load} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={load}
+            tintColor={theme.primary}
+          />
         }
         ListEmptyComponent={
-          !loading && (
-            <Text style={styles.empty}>
-              No trips yet. Tap "Offer a ride" on the home screen.
-            </Text>
-          )
+          !loading && <Text style={styles.empty}>{t("mytrips.notrips")}</Text>
         }
         renderItem={({ item }) => {
           const info = byTrip[item.id] ?? { accepted: [], pending: 0 };
@@ -141,7 +174,7 @@ export default function MyTrips() {
                 <Text
                   style={[
                     styles.status,
-                    { color: STATUS_COLORS[item.status] ?? "#555" },
+                    { color: STATUS_COLORS[item.status] ?? theme.muted },
                   ]}
                 >
                   {statusLabel(item.status)}
@@ -151,7 +184,7 @@ export default function MyTrips() {
                 {formatDateTime(item.departureAt)}
               </Text>
               <Text style={styles.meta}>
-                {item.seatsLeft} of {item.seats} seats left{" "}
+                {item.seatsLeft} of {item.seats} {t("mytrips.seatsleft")}{" "}
               </Text>
               <Text style={styles.meta}>
                 {formatPrice(item.priceCents, item.currency)} per seat
@@ -162,21 +195,22 @@ export default function MyTrips() {
                 >
                   <Text style={styles.pending}>
                     {info.pending} request{info.pending === 1 ? "" : "s"}{" "}
-                    waiting · Review
+                    {t("mytrips.waiting")} · {t("mytrips.review")}
                   </Text>
                 </Pressable>
               )}
               {info.accepted.length > 0 && (
                 <View style={styles.passengers}>
-                  <Text style={styles.passengersTitle}>Passengers</Text>
+                  <Text style={styles.passengersTitle}>{t("passenger")}</Text>
                   {info.accepted.map((r) => (
                     <View key={r.id} style={styles.passengerRow}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.passengerName}>
-                          {r.passengerName ?? "Passenger"}
+                          {r.passengerName ?? t("passenger")}
+                          {r.paymentStatus === "PAID" ? "  ✓ paid" : ""}
                         </Text>
                         <Text style={styles.meta} numberOfLines={1}>
-                          Pickup: {r.pickupName}
+                          {t("mytrips.pickup")}: {r.pickupName}
                         </Text>
                       </View>
                       <Pressable
@@ -184,12 +218,14 @@ export default function MyTrips() {
                         onPress={() =>
                           navigation.navigate("Chat", {
                             requestId: r.id,
-                            title: r.passengerName ?? "Passenger",
+                            title: r.passengerName ?? t("passenger"),
                             subtitle: `${item.originName} → ${item.destName}`,
                           })
                         }
                       >
-                        <Text style={styles.messageBtnText}>Message</Text>
+                        <Text style={styles.messageBtnText}>
+                          {t("mytrips.message")}
+                        </Text>
                       </Pressable>
                     </View>
                   ))}
@@ -205,9 +241,11 @@ export default function MyTrips() {
                   onPress={() => onCancel(item)}
                 >
                   {busyId === item.id ? (
-                    <ActivityIndicator />
+                    <ActivityIndicator color={theme.primary} />
                   ) : (
-                    <Text style={styles.cancelText}>Cancel trip</Text>
+                    <Text style={styles.cancelText}>
+                      {t("mytrips.canceltrip")}
+                    </Text>
                   )}
                 </Pressable>
               )}
@@ -269,12 +307,4 @@ const makeStyles = (t) =>
     cancelText: { fontWeight: "600", color: t.danger },
     empty: { textAlign: "center", marginTop: 40, color: t.muted, padding: 24 },
     error: { color: t.danger, padding: 16 },
-    header: {
-      paddingTop: 56,
-      paddingHorizontal: 16,
-      paddingBottom: 12,
-      backgroundColor: t.headerBg,
-    },
-    back: { color: t.primary, fontSize: 16, marginBottom: 4 },
-    title: { fontSize: 22, fontWeight: "700", color: t.headerText },
   });

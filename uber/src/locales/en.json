@@ -64,5 +64,17 @@
   "tripdetails.plattform": "plattform",
   "tripdetails.fee": "fee",
   "tripdetails.price": "Enter a price",
-  "tripdetails.publishtrip": "Publish trip"
+  "tripdetails.publishtrip": "Publish trip",
+  "mytrips.couldnotload": "Could not load your trips.Could not load your trips.",
+  "mytrips.couldnotcancel": "Could not cancel",
+  "mytrips.cancelask": "Cancel this trip?",
+  "mytrips.willbetoldthattripwascancelled": "Passengers with open or accepted requests will be told that the trip was cancelled.",
+  "mytrips.keeptrip": "Keep trip",
+  "mytrips.canceltrip": "Cancel trip",
+  "mytrips.notrips": "No trips yet. Tap \"Offer a ride\" on the home screen.",
+  "mytrips.seatsleft": "seats left",
+  "mytrips.waiting": "waiting",
+  "mytrips.review": "Review",
+  "mytrips.pickup": "Pickup",
+  "mytrips.message": "Message"
 }
