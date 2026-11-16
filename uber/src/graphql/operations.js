@@ -83,6 +83,8 @@ export const listMyTrips = /* GraphQL */ `
       seats
       seatsLeft
       status
+      priceCents
+      currency
     }
   }
 `;

@@ -1,3 +1,5 @@
+import i18n from "i18next";
+
 const MONTHS = [
   "Jan",
   "Feb",
@@ -34,13 +36,14 @@ export const STATUS_COLORS = {
   ACTIVE: "#2e7d32",
 };
 
-const STATUS_LABELS = {
+const STATUS_DEFAULTS = {
   PENDING: "Waiting",
   ACCEPTED: "Accepted",
   DECLINED: "Declined",
   CANCELLED: "Cancelled",
   CANCELLED_BY_DRIVER: "Trip cancelled",
   ACTIVE: "Active",
+  REFUNDED: "Refunded",
 };
 
 export function formatTime(input) {
@@ -48,7 +51,9 @@ export function formatTime(input) {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export const statusLabel = (status) => STATUS_LABELS[status] ?? status;
+// Wird erst beim Aufruf übersetzt, nicht beim Laden der Datei
+export const statusLabel = (status) =>
+  i18n.t(status, { defaultValue: STATUS_DEFAULTS[status] ?? status });
 
 export const FEE_RATE = 0.2;
 

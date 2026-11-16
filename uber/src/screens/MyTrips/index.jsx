@@ -184,11 +184,14 @@ export default function MyTrips() {
                 {formatDateTime(item.departureAt)}
               </Text>
               <Text style={styles.meta}>
-                {item.seatsLeft} of {item.seats} {t("mytrips.seatsleft")}{" "}
+                {item.seatsLeft} von {item.seats} {t("mytrips.seatsleft")}{" "}
               </Text>
-              <Text style={styles.meta}>
-                {formatPrice(item.priceCents, item.currency)} per seat
-              </Text>
+              {item.priceCents != null && (
+                <Text style={styles.meta}>
+                  {formatPrice(item.priceCents, item.currency)}{" "}
+                  {t("mytrips.perseat")}
+                </Text>
+              )}
               {item.status === "ACTIVE" && info.pending > 0 && (
                 <Pressable
                   onPress={() => navigation.navigate("DriverRequests")}
@@ -207,7 +210,9 @@ export default function MyTrips() {
                       <View style={{ flex: 1 }}>
                         <Text style={styles.passengerName}>
                           {r.passengerName ?? t("passenger")}
-                          {r.paymentStatus === "PAID" ? "  ✓ paid" : ""}
+                          {r.paymentStatus === t("mytrips.paidbig")
+                            ? "  ✓ " + t("mytrips.paid")
+                            : ""}
                         </Text>
                         <Text style={styles.meta} numberOfLines={1}>
                           {t("mytrips.pickup")}: {r.pickupName}

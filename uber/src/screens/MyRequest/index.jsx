@@ -23,6 +23,7 @@ import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
 import ProfileBadge from "../../components/ProfileBadge";
 import ScreenHeader from "../../components/ScreenHeader";
 import { useTheme, useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
@@ -37,7 +38,9 @@ const isCancelled = (r) =>
   r.status === "CANCELLED" || r.status === "CANCELLED_BY_DRIVER";
 
 export default function MyRequests() {
-  const t = useTheme();
+  const { t } = useTranslation();
+
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const navigation = useNavigation();
@@ -84,7 +87,7 @@ export default function MyRequests() {
       }
     } catch (e) {
       console.log("LIST REQUESTS ERROR:", e.errors ?? e);
-      setError("Could not load your requests.");
+      setError(t("myrequests.errornotload"));
     } finally {
       setLoading(false);
     }
@@ -114,7 +117,7 @@ export default function MyRequests() {
       const result = await presentPaymentSheet();
       if (result.error) {
         if (result.error.code !== "Canceled") {
-          Alert.alert("Payment failed", result.error.message);
+          Alert.alert(t("myrequests.paymentfailed"), result.error.message);
         }
         return;
       }
@@ -124,12 +127,12 @@ export default function MyRequests() {
         variables: { requestId: item.id },
       });
       await load();
-      Alert.alert("Paid", "Your payment was successful.");
+      Alert.alert(t("mytrips.paidbig"), t("myrequests.paymentsuccess"));
     } catch (e) {
       console.log("PAY ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not pay",
-        e.errors?.[0]?.message ?? e.message ?? "Please try again.",
+        t("myrequests.couldnotpaid"),
+        e.errors?.[0]?.message ?? e.message ?? t("myrequests.tryagain"),
       );
     } finally {
       setPayingId(null);
@@ -150,15 +153,12 @@ export default function MyRequests() {
             query: refundPayment,
             variables: { requestId: item.id },
           });
-          Alert.alert(
-            "Refunded",
-            "Your payment was refunded, except for the 20% platform fee.",
-          );
+          Alert.alert(t("myrequests.refunded"), t("myrequests.refunded.descr"));
         } catch (e) {
           console.log("REFUND ERROR:", e.errors ?? e);
           Alert.alert(
-            "Refund not completed",
-            e.errors?.[0]?.message ?? "We will try again later.",
+            t("myrequests.refundnot"),
+            e.errors?.[0]?.message ?? t("myrequests.refundnot.descr"),
           );
         }
       }
@@ -166,8 +166,8 @@ export default function MyRequests() {
     } catch (e) {
       console.log("CANCEL REQUEST ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not cancel",
-        e.errors?.[0]?.message ?? "Please try again.",
+        t("mytrips.couldnotcancel"),
+        e.errors?.[0]?.message ?? t("myrequests.tryagain"),
       );
     } finally {
       setBusyId(null);
@@ -175,18 +175,17 @@ export default function MyRequests() {
   };
 
   const onCancel = (item) => {
-    let message = "The driver will no longer see your request.";
+    let message = t("myrequest.nolongersee");
     if (item.status === "ACCEPTED") {
-      message = "The driver already accepted you. Your seat will be freed.";
+      message = t("myrequest.thedriveralready");
     }
     if (item.paymentStatus === "PAID") {
-      message +=
-        "\n\nYou get your money back, except for the 20% platform fee, which is not refunded.";
+      message += `\n\n ${t("myrequests.yougetback")}`;
     }
-    Alert.alert("Cancel this request?", message, [
-      { text: "Keep", style: "cancel" },
+    Alert.alert(t("myrequests.askcancel"), message, [
+      { text: t("myrequests.keep"), style: "cancel" },
       {
-        text: "Cancel request",
+        text: t("myrequests.cancel"),
         style: "destructive",
         onPress: () => cancelIt(item),
       },
@@ -196,7 +195,7 @@ export default function MyRequests() {
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="My requests"
+        title={t("rolehome.myrequests")}
         onBack={() => navigation.navigate("PassengerHome")}
       />
       {!!error && <Text style={styles.error}>{error}</Text>}
@@ -207,14 +206,12 @@ export default function MyRequests() {
           <RefreshControl
             refreshing={loading}
             onRefresh={load}
-            tintColor={t.primary}
+            tintColor={s.primary}
           />
         }
         ListEmptyComponent={
           !loading && (
-            <Text style={styles.empty}>
-              No requests yet. Tap "Find a ride" on the home screen.
-            </Text>
+            <Text style={styles.empty}>{t("myrequests.requestsyet")}</Text>
           )
         }
         renderItem={({ item }) => {
@@ -230,7 +227,7 @@ export default function MyRequests() {
                 <Text
                   style={[
                     styles.status,
-                    { color: STATUS_COLORS[item.status] ?? t.muted },
+                    { color: STATUS_COLORS[item.status] ?? s.muted },
                   ]}
                 >
                   {statusLabel(item.status)}
@@ -244,8 +241,8 @@ export default function MyRequests() {
               </Text>
               <Text style={styles.meta} numberOfLines={1}>
                 {item.status === "ACCEPTED"
-                  ? `Be at your pickup point: ${item.pickupName}`
-                  : `Your pickup: ${item.pickupName}`}
+                  ? `${t("myrequests.beatpickuppoint")}: ${item.pickupName}`
+                  : `${t("myrequests.yourpickup")}: ${item.pickupName}`}
               </Text>
 
               {open && (
@@ -258,28 +255,30 @@ export default function MyRequests() {
                   onPress={() => onCancel(item)}
                 >
                   {busyId === item.id ? (
-                    <ActivityIndicator color={t.primary} />
+                    <ActivityIndicator color={s.primary} />
                   ) : (
-                    <Text style={styles.cancelText}>Cancel request</Text>
+                    <Text style={styles.cancelText}>
+                      {t("myrequests.cancel")}
+                    </Text>
                   )}
                 </Pressable>
               )}
-
               {item.status === "ACCEPTED" && (
                 <Pressable
                   style={styles.chat}
                   onPress={() =>
                     navigation.navigate("Chat", {
                       requestId: item.id,
-                      title: item.driverName ?? "Driver",
+                      title: item.driverName ?? t("driver"),
                       subtitle: `${item.tripOriginName} → ${item.tripDestName}`,
                     })
                   }
                 >
-                  <Text style={styles.chatText}>Message driver</Text>
+                  <Text style={styles.chatText}>
+                    {t("myrequests.messagedriver")}
+                  </Text>
                 </Pressable>
               )}
-
               {item.status === "ACCEPTED" && item.paymentStatus !== "PAID" && (
                 <Pressable
                   style={[styles.pay, payingId === item.id && { opacity: 0.4 }]}
@@ -287,23 +286,27 @@ export default function MyRequests() {
                   onPress={() => pay(item)}
                 >
                   {payingId === item.id ? (
-                    <ActivityIndicator color={t.onPrimary} />
+                    <ActivityIndicator color={s.onPrimary} />
                   ) : (
-                    <Text style={styles.chatText}>Pay now</Text>
+                    <Text style={styles.chatText}>
+                      {t("myrequests.paynow")}
+                    </Text>
                   )}
                 </Pressable>
               )}
-
               {item.status === "ACCEPTED" && item.paymentStatus === "PAID" && (
-                <Text style={[styles.meta, styles.good]}>Paid ✓</Text>
+                <Text style={[styles.meta, styles.good]}>
+                  {t("mytrips.paidnormal")} ✓
+                </Text>
               )}
-
               {isCancelled(item) && item.paymentStatus === "PAID" && (
-                <Text style={styles.meta}>Refund in progress…</Text>
+                <Text style={styles.meta}>
+                  {t("myrequests.refundinprogress")}
+                </Text>
               )}
               {item.paymentStatus === "REFUNDED" && (
                 <Text style={[styles.meta, styles.good]}>
-                  Refunded ✓ (platform fee of 20% not refunded)
+                  {t("myrequests.refunded")} ✓ ({t("myrequests.notrefunded")})
                 </Text>
               )}
             </View>
