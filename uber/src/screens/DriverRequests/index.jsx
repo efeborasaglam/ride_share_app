@@ -14,6 +14,7 @@ import { formatDateTime, STATUS_COLORS, statusLabel } from "../../utils/format";
 import ScreenHeader from "../../components/ScreenHeader";
 import ProfileBadge from "../../components/ProfileBadge";
 import { useTheme, useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
@@ -26,7 +27,9 @@ const ORDER = {
 };
 
 export default function DriverRequests() {
-  const t = useTheme();
+  const { t } = useTranslation();
+
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const [requests, setRequests] = useState([]);
@@ -46,8 +49,8 @@ export default function DriverRequests() {
       );
       setRequests(list);
     } catch (e) {
-      console.log("LIST DRIVER REQUESTS ERROR:", e.errors ?? e);
-      setError("Could not load requests.");
+      console.log(t("driverrequest.drivererror"), e.errors ?? e);
+      setError(t("driverrequest.couldnotload"));
     } finally {
       setLoading(false);
     }
@@ -64,8 +67,8 @@ export default function DriverRequests() {
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="Requests"
-        subtitle={`${pending} waiting for your answer`}
+        title={t("rolehome.requests")}
+        subtitle={`${pending} ${t("driverrequest.waiting")}`}
         onBack={() => navigation.navigate("DriverHome")}
       />
       {!!error && <Text style={styles.error}>{error}</Text>}
@@ -76,14 +79,12 @@ export default function DriverRequests() {
           <RefreshControl
             refreshing={loading}
             onRefresh={load}
-            tintColor={t.primary}
+            tintColor={s.primary}
           />
         }
         ListEmptyComponent={
           !loading && (
-            <Text style={styles.empty}>
-              No requests yet. Passengers going your way will show up here.
-            </Text>
+            <Text style={styles.empty}>{t("driverrequest.norequest")}</Text>
           )
         }
         renderItem={({ item }) => (
@@ -104,7 +105,7 @@ export default function DriverRequests() {
               <Text
                 style={[
                   styles.status,
-                  { color: STATUS_COLORS[item.status] ?? t.muted },
+                  { color: STATUS_COLORS[item.status] ?? s.muted },
                 ]}
               >
                 {statusLabel(item.status)}
@@ -115,7 +116,7 @@ export default function DriverRequests() {
             </Text>
             <Text style={styles.meta}>{formatDateTime(item.departureAt)}</Text>
             <Text style={styles.meta} numberOfLines={1}>
-              Pickup: {item.pickupName}
+              {t("mytrips.pickup")}: {item.pickupName}
             </Text>
           </Pressable>
         )}

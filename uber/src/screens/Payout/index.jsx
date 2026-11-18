@@ -18,11 +18,14 @@ import {
 import { useProfile } from "../../context/ProfileContext";
 import { useTheme, useThemedStyles } from "../../theme";
 import ScreenHeader from "../../components/ScreenHeader";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
 export default function Payouts() {
-  const t = useTheme();
+  const { t } = useTranslation();
+
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const { profile, applyProfile } = useProfile();
@@ -33,16 +36,18 @@ export default function Payouts() {
 
   const refresh = useCallback(
     async (silent = false) => {
+      const { t } = useTranslation();
+
       setChecking(true);
       try {
         const res = await client.graphql({ query: refreshPayoutStatus });
         applyProfile((prev) => ({ ...prev, ...res.data.refreshPayoutStatus }));
       } catch (e) {
-        console.log("REFRESH PAYOUT ERROR:", e.errors ?? e);
+        console.log(`${t("payouts.refresherror")}:`, e.errors ?? e);
         if (!silent) {
           Alert.alert(
-            "Could not check status",
-            e.errors?.[0]?.message ?? "Please try again.",
+            t("payouts.couldnotcheckstatus"),
+            e.errors?.[0]?.message ?? t("myrequests.tryagain"),
           );
         }
       } finally {
@@ -53,6 +58,8 @@ export default function Payouts() {
   );
 
   const onStart = async () => {
+    const { t } = useTranslation();
+
     setBusy(true);
     try {
       const attrs = await fetchUserAttributes();
@@ -63,10 +70,10 @@ export default function Payouts() {
       await WebBrowser.openBrowserAsync(res.data.startPayoutOnboarding.url);
       await refresh(true);
     } catch (e) {
-      console.log("START PAYOUT ERROR:", e.errors ?? e);
+      console.log(`${t("payouts.payouterror")}:`, e.errors ?? e);
       Alert.alert(
-        "Could not start",
-        e.errors?.[0]?.message ?? "Please try again.",
+        t("payouts.couldnotstart"),
+        e.errors?.[0]?.message ?? t("myrequests.tryagain"),
       );
     } finally {
       setBusy(false);
@@ -81,30 +88,29 @@ export default function Payouts() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Payouts" onBack={() => navigation.goBack()} />
+      <ScreenHeader
+        title={t("customdrawer.payout")}
+        onBack={() => navigation.goBack()}
+      />
 
       <View style={{ padding: 16 }}>
         <View style={styles.card}>
           <Text
-            style={[styles.status, { color: ready ? t.accent : t.primary }]}
+            style={[styles.status, { color: ready ? s.accent : s.primary }]}
           >
-            {ready ? "Payouts active" : "Payouts not set up"}
+            {ready ? t("payouts.active") : t("payouts.notsetup")}
           </Text>
           <Text style={styles.text}>
-            {ready
-              ? "You can offer rides. Your earnings are paid out to your bank account."
-              : "To offer rides you need a payout account. It is set up with our payment partner Stripe."}
+            {ready ? t("payouts.offerrides") : t("payouts.offerrides.descr")}
           </Text>
         </View>
 
         <Text style={[styles.text, { marginTop: 16 }]}>
-          You keep 80% of the price you set. 20% is the platform fee.
+          {t("payouts.keep")}
         </Text>
 
         {!ready && !verified && (
-          <Text style={styles.warn}>
-            Please verify your identity first (menu → Verification).
-          </Text>
+          <Text style={styles.warn}>{t("payouts.verify")}</Text>
         )}
 
         {!ready && verified && (
@@ -114,9 +120,9 @@ export default function Payouts() {
             onPress={onStart}
           >
             {busy ? (
-              <ActivityIndicator color={t.onPrimary} />
+              <ActivityIndicator color={s.onPrimary} />
             ) : (
-              <Text style={styles.buttonText}>Set up payouts</Text>
+              <Text style={styles.buttonText}>{t("rolehome.setuppayout")}</Text>
             )}
           </Pressable>
         )}
@@ -128,9 +134,11 @@ export default function Payouts() {
             onPress={() => refresh(false)}
           >
             {checking ? (
-              <ActivityIndicator color={t.primary} />
+              <ActivityIndicator color={s.primary} />
             ) : (
-              <Text style={styles.secondaryText}>Check status</Text>
+              <Text style={styles.secondaryText}>
+                {t("payouts.checkstatus")}
+              </Text>
             )}
           </Pressable>
         )}

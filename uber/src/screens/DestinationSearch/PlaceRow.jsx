@@ -3,15 +3,14 @@ import React from "react";
 import { Entypo } from "@expo/vector-icons";
 
 export default function PlaceRow({ data }) {
-  console.log("yaroooo" + data);
   return (
     <View style={styles.row}>
       <View style={styles.iconContainer}>
-        {data.description === "Home" ? (
-          <Entypo name={"home"} size={20} color={"white"} />
-        ) : (
-          <Entypo name={"location-pin"} size={20} color={"white"} />
-        )}
+        <Entypo
+          name={data.isPredefinedPlace ? "star" : "location-pin"}
+          size={20}
+          color={"white"}
+        />
       </View>
       <Text style={styles.locationText}>
         {data.description || data.vicinity}
@@ -19,6 +18,7 @@ export default function PlaceRow({ data }) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",

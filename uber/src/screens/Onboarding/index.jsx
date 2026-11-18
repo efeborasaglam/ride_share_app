@@ -10,10 +10,12 @@ import {
 } from "react-native";
 import { useProfile } from "../../context/ProfileContext";
 import { useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const SEAT_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const styles = useThemedStyles(makeStyles);
   const { profile, setupRole, save, closeSetup } = useProfile();
   const [name, setName] = useState(profile?.displayName ?? "");
@@ -42,7 +44,7 @@ export default function OnboardingScreen() {
       closeSetup();
     } catch (e) {
       console.log("SAVE PROFILE ERROR:", e.errors ?? e);
-      setError(e.errors?.[0]?.message ?? "Could not save your profile.");
+      setError(e.errors?.[0]?.message ?? t("onboarding.error.save"));
     } finally {
       setSaving(false);
     }
@@ -50,36 +52,45 @@ export default function OnboardingScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Set up your profile</Text>
+      <Text style={styles.title}>{t("onboarding.title")}</Text>
 
-      <Text style={styles.label}>Your name</Text>
+      <Text style={styles.label}>{t("onboarding.name.label")}</Text>
       <TextInput
         style={styles.input}
-        placeholder="e.g. Efe"
+        placeholder={t("onboarding.name.placeholder")}
         value={name}
         onChangeText={setName}
         maxLength={40}
       />
 
-      <Text style={styles.label}>How do you want to use the app?</Text>
+      <Text style={styles.label}>{t("onboarding.role.label")}</Text>
       <Pressable
         style={[styles.card, role === "DRIVER" && styles.cardActive]}
         onPress={() => setRole("DRIVER")}
       >
-        <Text style={styles.cardTitle}>I'm driving</Text>
-        <Text style={styles.cardText}>Offer a ride on your route</Text>
+        <Text style={styles.cardTitle}>
+          {t("onboarding.role.driver.title")}
+        </Text>
+        <Text style={styles.cardText}>
+          {t("onboarding.role.driver.description")}
+        </Text>
       </Pressable>
+
       <Pressable
         style={[styles.card, role === "PASSENGER" && styles.cardActive]}
         onPress={() => setRole("PASSENGER")}
       >
-        <Text style={styles.cardTitle}>I need a ride</Text>
-        <Text style={styles.cardText}>Find drivers going your way</Text>
+        <Text style={styles.cardTitle}>
+          {t("onboarding.role.passenger.title")}
+        </Text>
+        <Text style={styles.cardText}>
+          {t("onboarding.role.passenger.description")}
+        </Text>
       </Pressable>
 
       {role === "DRIVER" && (
         <>
-          <Text style={styles.label}>Seats for passengers in your car</Text>
+          <Text style={styles.label}>{t("onboarding.seats.label")}</Text>{" "}
           <View style={styles.seatRow}>
             {SEAT_OPTIONS.map((n) => (
               <Pressable
@@ -104,13 +115,15 @@ export default function OnboardingScreen() {
         {saving ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>
+            {t("onboarding.button.continue")}
+          </Text>
         )}
       </Pressable>
 
       {!!profile && (
         <Pressable onPress={closeSetup}>
-          <Text style={styles.cancel}>Cancel</Text>
+          <Text style={styles.cancel}>{t("onboarding.button.cancel")}</Text>
         </Pressable>
       )}
     </ScrollView>

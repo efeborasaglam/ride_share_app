@@ -23,11 +23,13 @@ import { formatTime } from "../../utils/format";
 import ReportModal from "../../components/ReportModal";
 import ScreenHeader from "../../components/ScreenHeader";
 import { useTheme, useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
 export default function Chat() {
-  const t = useTheme();
+  const { t } = useTranslation();
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
@@ -63,7 +65,7 @@ export default function Chat() {
           }
         } catch (e) {
           console.log("LIST MESSAGES ERROR:", e.errors ?? e);
-          if (active) setError("Could not load messages.");
+          if (active) setError(t("chat.error.load"));
         } finally {
           if (active) setLoading(false);
         }
@@ -92,8 +94,8 @@ export default function Chat() {
     } catch (e) {
       console.log("SEND MESSAGE ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not send",
-        e.errors?.[0]?.message ?? "Please try again.",
+        t("chat.alert.could_not_send"),
+        e.errors?.[0]?.message ?? t("chat.alert.try_again"),
       );
     } finally {
       setSending(false);
@@ -112,7 +114,7 @@ export default function Chat() {
         menu={false}
         action={
           <Pressable onPress={() => setReportOpen(true)} hitSlop={10}>
-            <Text style={styles.report}>Report</Text>
+            <Text style={styles.report}>{t("chat.report")}</Text>{" "}
           </Pressable>
         }
       />
@@ -120,7 +122,7 @@ export default function Chat() {
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} color={t.primary} />
+        <ActivityIndicator style={{ marginTop: 32 }} color={s.primary} />
       ) : (
         <FlatList
           style={{ flex: 1 }}
@@ -130,7 +132,7 @@ export default function Chat() {
           keyExtractor={(m) => m.id}
           ListEmptyComponent={
             <Text style={[styles.empty, { transform: [{ scaleY: -1 }] }]}>
-              Say hello and agree on the pickup details.
+              {t("chat.empty")}
             </Text>
           }
           renderItem={({ item }) => {
@@ -152,8 +154,8 @@ export default function Chat() {
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
-          placeholder="Message"
-          placeholderTextColor={t.muted}
+          placeholder={t("chat.input.placeholder")}
+          placeholderTextColor={s.muted}
           value={text}
           onChangeText={setText}
           multiline
@@ -165,9 +167,9 @@ export default function Chat() {
           onPress={onSend}
         >
           {sending ? (
-            <ActivityIndicator color={t.onPrimary} />
+            <ActivityIndicator color={s.onPrimary} />
           ) : (
-            <Text style={styles.sendText}>Send</Text>
+            <Text style={styles.sendText}>{t("chat.button.send")}</Text>
           )}
         </Pressable>
       </View>

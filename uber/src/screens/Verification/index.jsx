@@ -23,48 +23,50 @@ import { formatDateTime } from "../../utils/format";
 import ProfileBadge from "../../components/ProfileBadge";
 import ScreenHeader from "../../components/ScreenHeader";
 import { useTheme, useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
 const PRIVACY_URL = "https://didit.me/terms/verification-privacy-notice";
 const TERMS_URL = "https://didit.me/terms/identity-verification";
 
-// colorKey verweist auf eine Farbe im Theme
-const INFO = {
-  NONE: {
-    title: "Not verified",
-    text: "Verify your identity to offer or request rides.",
-    colorKey: "muted",
-  },
-  PENDING: {
-    title: "Verification in progress",
-    text: "Finish the steps in the verification window, then check your status.",
-    colorKey: "primary",
-  },
-  IN_REVIEW: {
-    title: "Being reviewed",
-    text: "Your documents are being checked manually. Check again later.",
-    colorKey: "primary",
-  },
-  APPROVED: {
-    title: "Verified",
-    text: "Your identity is verified.",
-    colorKey: "accent",
-  },
-  DECLINED: {
-    title: "Verification failed",
-    text: "We could not verify your identity. You can try again with a valid document.",
-    colorKey: "danger",
-  },
-  EXPIRED: {
-    title: "Verification expired",
-    text: "Your verification session expired. Please start again.",
-    colorKey: "danger",
-  },
-};
-
 export default function Verification() {
-  const t = useTheme();
+  const { t } = useTranslation();
+
+  const INFO = {
+    NONE: {
+      title: t("verification.title.none"),
+      text: t("verification.text.none"),
+      colorKey: "muted",
+    },
+    PENDING: {
+      title: t("verification.title.pending"),
+      text: t("verification.text.pending"),
+      colorKey: "primary",
+    },
+    IN_REVIEW: {
+      title: t("verification.title.in_review"),
+      text: t("verification.text.in_review"),
+      colorKey: "primary",
+    },
+    APPROVED: {
+      title: t("verification.title.approved"),
+      text: t("verification.text.approved"),
+      colorKey: "accent",
+    },
+    DECLINED: {
+      title: t("verification.title.declined"),
+      text: t("verification.text.declined"),
+      colorKey: "danger",
+    },
+    EXPIRED: {
+      title: t("verification.title.expired"),
+      text: t("verification.text.expired"),
+      colorKey: "danger",
+    },
+  };
+
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const navigation = useNavigation();
   const { profile, applyProfile } = useProfile();
@@ -87,8 +89,8 @@ export default function Verification() {
     } catch (e) {
       console.log("VISIBILITY ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not save",
-        e.errors?.[0]?.message ?? "Please try again.",
+        t("verification.alert.could_not_save"),
+        e.errors?.[0]?.message ?? t("verification.alert.try_again"),
       );
     } finally {
       setSavingVisible(false);
@@ -104,7 +106,11 @@ export default function Verification() {
       } catch (e) {
         console.log("REFRESH VERIFICATION ERROR:", e.errors ?? e);
         const msg = e.errors?.[0]?.message ?? "Please try again.";
-        if (!silent) Alert.alert("Could not check status", msg);
+        if (!silent)
+          Alert.alert(
+            t("verification.alert.could_not_save"),
+            e.errors?.[0]?.message ?? t("verification.alert.try_again"),
+          );
       } finally {
         setChecking(false);
       }
@@ -132,7 +138,7 @@ export default function Verification() {
       if (msg.includes("already verified")) {
         await refresh(true); // sync the status from the server
       } else {
-        Alert.alert("Could not start", msg);
+        Alert.alert(t("verification.alert.could_not_start"), msg);
       }
     } finally {
       setBusy(false);
@@ -144,26 +150,29 @@ export default function Verification() {
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="Identity verification"
+        title={t("verification.screen.title")}
         onBack={() => navigation.goBack()}
       />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <View style={styles.card}>
-          <Text style={[styles.status, { color: t[info.colorKey] }]}>
+          <Text style={[styles.status, { color: s[info.colorKey] }]}>
             {info.title}
           </Text>
           <Text style={styles.text}>{info.text}</Text>
           {status === "APPROVED" && !!profile.verifiedAt && (
             <Text style={styles.meta}>
-              Verified on {formatDateTime(profile.verifiedAt)}
+              {t("verification.profile.verified_on")}{" "}
+              {formatDateTime(profile.verifiedAt)}
             </Text>
           )}
         </View>
 
         {status === "APPROVED" && (
           <View style={[styles.card, { marginTop: 16 }]}>
-            <Text style={styles.heading}>My verified profile</Text>
+            <Text style={styles.heading}>
+              {t("verification.profile.heading")}
+            </Text>
             <View style={{ marginTop: 12 }}>
               <ProfileBadge
                 userId={profile.id}
@@ -176,62 +185,55 @@ export default function Verification() {
                 value={!!profile.profileVisible}
                 onValueChange={onToggleVisible}
                 disabled={savingVisible}
-                trackColor={{ true: t.primary, false: t.border }}
+                trackColor={{ true: s.primary, false: s.border }}
               />
               <Text style={styles.consentText}>
-                Show my photo and age to other verified users when we match.
+                {t("verification.profile.visibility")}
               </Text>
             </View>
-            <Text style={styles.meta}>
-              The photo is the selfie from your verification. Your date of birth
-              and your ID document are never shown.
-            </Text>
+            <Text style={styles.meta}>{t("verification.profile.privacy")}</Text>
           </View>
         )}
 
         {canStart && (
           <View style={{ marginTop: 16 }}>
-            <Text style={styles.heading}>How it works</Text>
+            <Text style={styles.heading}>
+              {t("verification.how_it_works.heading")}
+            </Text>{" "}
             <Text style={styles.text}>
-              You scan a valid ID card, passport or driver's licence, record a
-              short selfie video and we compare your face with the document.
+              {t("verification.how_it_works.description")}
             </Text>
             <Text style={[styles.text, { marginTop: 8 }]}>
-              The check is done by our verification provider Didit. Your
-              documents and face data are processed by Didit. This app only
-              stores the result (status and date).
+              {t("verification.how_it_works.provider")}
             </Text>
             <Pressable onPress={() => Linking.openURL(PRIVACY_URL)}>
-              <Text style={styles.link}>Didit Verification Privacy Notice</Text>
+              <Text style={styles.link}>{t("verification.links.privacy")}</Text>
             </Pressable>
             <Pressable onPress={() => Linking.openURL(TERMS_URL)}>
-              <Text style={styles.link}>Didit End User Terms</Text>
+              <Text style={styles.link}>{t("verification.links.terms")}</Text>
             </Pressable>
-
             <View style={styles.consentRow}>
               <Switch
                 value={consent}
                 onValueChange={setConsent}
-                trackColor={{ true: t.primary, false: t.border }}
+                trackColor={{ true: s.primary, false: s.border }}
               />
               <Text style={styles.consentText}>
-                I agree that my ID document and my face are processed to verify
-                my identity.
+                {t("verification.consent")}
               </Text>
             </View>
-
             <Pressable
               style={[styles.button, (!consent || busy) && { opacity: 0.4 }]}
               disabled={!consent || busy}
               onPress={onStart}
             >
               {busy ? (
-                <ActivityIndicator color={t.onPrimary} />
+                <ActivityIndicator color={s.onPrimary} />
               ) : (
                 <Text style={styles.buttonText}>
                   {status === "PENDING"
-                    ? "Continue verification"
-                    : "Start verification"}
+                    ? t("verification.button.continue")
+                    : t("verification.button.start")}
                 </Text>
               )}
             </Pressable>
@@ -245,9 +247,11 @@ export default function Verification() {
             onPress={() => refresh(false)}
           >
             {checking ? (
-              <ActivityIndicator color={t.primary} />
+              <ActivityIndicator color={s.primary} />
             ) : (
-              <Text style={styles.secondaryText}>Check status</Text>
+              <Text style={styles.secondaryText}>
+                {t("verification.button.check_status")}
+              </Text>
             )}
           </Pressable>
         )}

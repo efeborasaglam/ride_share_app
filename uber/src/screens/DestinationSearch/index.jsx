@@ -5,17 +5,13 @@ import GooglePlacesAutocomplete from "./PlaceSearch";
 import PlaceRow from "./PlaceRow";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import { Pressable, Text } from "react-native";
+import { useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useSavedPlaces } from "./savedPlaces";
 
-const homePlace = {
-  description: "Home",
-  geometry: { location: { lat: 41.0587, lng: 29.0058 } },
-};
-
-const workPlace = {
-  description: "Fenerbahçe Stadyumu, Istanbul",
-  geometry: { location: { lat: 40.9831, lng: 29.0356 } },
-};
 const DestinationSearch = () => {
+  const { places, reload } = useSavedPlaces();
   const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
@@ -28,6 +24,17 @@ const DestinationSearch = () => {
       navigation.navigate(next, { originPlace, destinationPlace });
     }
   }, [originPlace, destinationPlace]);
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
+
+  const predefinedPlaces = places.map((p) => ({
+    description: p.label,
+    geometry: p.geometry,
+  }));
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -54,7 +61,7 @@ const DestinationSearch = () => {
           }}
           renderRow={(data) => <PlaceRow data={data} />}
           renderDescription={(data) => data.description || data.vicinity}
-          predefinedPlaces={[homePlace, workPlace]}
+          predefinedPlaces={predefinedPlaces}
         />
         <GooglePlacesAutocomplete
           placeholder={t("destinationsearch.whereto")}
@@ -83,6 +90,14 @@ const DestinationSearch = () => {
         {/*rectangle to*/}
         <View style={styles.square}></View>
       </View>
+      <Pressable
+        style={{ position: "absolute", bottom: 20, alignSelf: "center" }}
+        onPress={() => navigation.navigate("ManagePlaces")}
+      >
+        <Text style={{ color: "#1faadb" }}>
+          {t("destinationsearch.managePlaces", "Orte verwalten")}
+        </Text>
+      </Pressable>
     </SafeAreaView>
   );
 };
