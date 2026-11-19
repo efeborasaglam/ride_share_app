@@ -14,6 +14,7 @@ import { getMyTrip, respondToRequest } from "../../graphql/operations";
 import { matchTrip } from "../../utils/matching";
 import { formatDateTime } from "../../utils/format";
 import { useTheme, useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const ANSWERED = {
   ACCEPTED: "You accepted this request.",
@@ -25,7 +26,9 @@ const ANSWERED = {
 const client = generateClient();
 
 export default function RequestDetails() {
-  const t = useTheme();
+  const { t } = useTranslation();
+
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
@@ -178,7 +181,7 @@ export default function RequestDetails() {
               onPress={() => respond(true)}
             >
               {busy ? (
-                <ActivityIndicator color={t.onPrimary} />
+                <ActivityIndicator color={s.onPrimary} />
               ) : (
                 <Text style={styles.acceptText}>Accept</Text>
               )}

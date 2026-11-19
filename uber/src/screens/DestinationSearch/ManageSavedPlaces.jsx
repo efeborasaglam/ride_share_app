@@ -20,7 +20,7 @@ export default function ManageSavedPlaces() {
 
   const save = async () => {
     if (!picked?.details?.geometry) {
-      Alert.alert("Bitte zuerst einen Ort suchen und auswählen.");
+      Alert.alert(t("savedPlaces.alert.select_location"));
       return;
     }
     await add({
@@ -35,30 +35,35 @@ export default function ManageSavedPlaces() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", padding: 15 }}>
-      <Text style={styles.title}>Gespeicherte Orte</Text>
+      <Text style={styles.title}>{t("savedPlaces.title")}</Text>
 
       <GooglePlacesAutocomplete
         ref={acRef}
-        placeholder="Ort suchen…"
+        placeholder={t("savedPlaces.search.placeholder")}
+        currentLocationLabel={t("places.current_location")}
         fetchDetails
         enablePoweredByContainer={false}
-        query={{ key: process.env.EXPO_PUBLIC_GOOGLE_KEY, language: "en" }}
+        query={{
+          key: process.env.EXPO_PUBLIC_GOOGLE_KEY,
+          language: i18n.language?.split("-")[0] || "en",
+        }}
         styles={{ container: { flex: 0 } }}
         onPress={(data, details) => setPicked({ data, details })}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Name, z. B. Zuhause, Arbeit (optional)"
+        placeholder={t("savedPlaces.label.placeholder")}
         value={label}
         onChangeText={setLabel}
       />
+
       <Pressable
         style={[styles.button, !picked && { opacity: 0.4 }]}
         onPress={save}
         disabled={!picked}
       >
-        <Text style={styles.buttonText}>Ort speichern</Text>
+        <Text style={styles.buttonText}>{t("savedPlaces.button.save")}</Text>
       </Pressable>
 
       <FlatList
@@ -66,7 +71,7 @@ export default function ManageSavedPlaces() {
         data={places}
         keyExtractor={(p) => p.id}
         ListEmptyComponent={
-          <Text style={{ color: "gray" }}>Noch keine Orte gespeichert.</Text>
+          <Text style={{ color: "gray" }}>{t("savedPlaces.empty")}</Text>
         }
         renderItem={({ item }) => (
           <View style={styles.item}>
@@ -77,7 +82,9 @@ export default function ManageSavedPlaces() {
               </Text>
             </View>
             <Pressable onPress={() => remove(item.id)}>
-              <Text style={{ color: "#d33" }}>Löschen</Text>
+              <Text style={{ color: "#d33" }}>
+                {t("savedPlaces.button.delete")}
+              </Text>
             </Pressable>
           </View>
         )}

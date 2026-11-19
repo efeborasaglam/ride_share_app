@@ -517,7 +517,7 @@ export const GooglePlacesAutocomplete = forwardRef(
       try {
         const perm = await Location.requestForegroundPermissionsAsync();
         if (perm.status !== "granted") {
-          onFail?.("Location permission denied");
+          onFail?.("LOCATION_PERMISSION_DENIED");
           setLoadingKey(null);
           return;
         }

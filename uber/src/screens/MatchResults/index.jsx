@@ -23,12 +23,14 @@ import { formatDateTime, formatPrice } from "../../utils/format";
 import { useProfile } from "../../context/ProfileContext";
 import ProfileBadge from "../../components/ProfileBadge";
 import { useTheme, useThemedStyles } from "../../theme";
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 const RADIUS_OPTIONS = [5, 10, 20];
 
 export default function MatchResults() {
-  const t = useTheme();
+  const { t } = useTranslation();
+  const s = useTheme();
   const styles = useThemedStyles(makeStyles);
   const route = useRoute();
   const navigation = useNavigation();
@@ -73,7 +75,7 @@ export default function MatchResults() {
       setTrips(res.data.listActiveTrips ?? []);
     } catch (e) {
       console.log("LIST ACTIVE TRIPS ERROR:", e.errors ?? e);
-      setError("Could not load trips.");
+      setError(t("matchResults.error.load"));
     } finally {
       setLoading(false);
     }
@@ -139,8 +141,10 @@ export default function MatchResults() {
     } catch (e) {
       console.log("REQUEST ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not send request",
-        e.errors?.[0]?.message ?? e.message ?? "Please try again.",
+        t("matchResults.error.send_title"),
+        e.errors?.[0]?.message ??
+          e.message ??
+          t("matchResults.error.try_again"),
       );
     } finally {
       setRequestingId(null);
@@ -149,11 +153,16 @@ export default function MatchResults() {
 
   const onRequest = (trip) => {
     Alert.alert(
-      "Request this ride?",
-      `${trip.driverName ?? "The driver"} will see your pickup location and can accept or decline.`,
+      t("matchResults.alert.request_title"),
+      t("matchResults.alert.request_message", {
+        driver: trip.driverName ?? t("matchResults.fallback.driver"),
+      }),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Send request", onPress: () => sendRequest(trip) },
+        { text: t("matchResults.button.cancel"), style: "cancel" },
+        {
+          text: t("matchResults.button.send_request"),
+          onPress: () => sendRequest(trip),
+        },
       ],
     );
   };
@@ -180,38 +189,47 @@ export default function MatchResults() {
               strokeWidth={trip.id === selectedId ? 5 : 3}
             />
           ))}
-          <Marker coordinate={pickup} title="Pickup" pinColor="green" />
-          <Marker coordinate={dropoff} title="Drop-off" />
+          <Marker
+            coordinate={pickup}
+            title={t("matchResults.marker.pickup")}
+            pinColor="green"
+          />
+          <Marker
+            coordinate={dropoff}
+            title={t("matchResults.marker.dropoff")}
+          />
         </MapView>
         <Pressable style={styles.back} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>
+            {t("matchResults.button.back")}
+          </Text>{" "}
         </Pressable>
       </View>
 
       <View style={styles.radiusRow}>
-        <Text style={styles.radiusLabel}>Search radius</Text>
+        <Text style={styles.radiusLabel}>
+          {t("matchResults.label.search_radius")}
+        </Text>{" "}
         {RADIUS_OPTIONS.map((r) => (
           <Pressable
             key={r}
             onPress={() => setRadius(r)}
             style={[styles.chip, radius === r && styles.chipActive]}
           >
-            <Text
-              style={[styles.chipText, radius === r && { color: t.onPrimary }]}
-            >
-              {r} km
-            </Text>
+            <Text>{t("matchResults.label.kilometers", { value: r })}</Text>
           </Pressable>
         ))}
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} color={t.primary} />
+        <ActivityIndicator style={{ marginTop: 32 }} color={s.primary} />
       ) : error ? (
         <View style={{ padding: 24, alignItems: "center" }}>
           <Text style={styles.error}>{error}</Text>
           <Pressable onPress={load}>
-            <Text style={styles.link}>Try again</Text>
+            <Text style={styles.link}>
+              {t("matchResults.button.try_again")}
+            </Text>{" "}
           </Pressable>
         </View>
       ) : (
@@ -219,10 +237,7 @@ export default function MatchResults() {
           data={matches}
           keyExtractor={(m) => m.trip.id}
           ListEmptyComponent={
-            <Text style={styles.empty}>
-              No drivers on your route yet. Try a larger radius or check back
-              later.
-            </Text>
+            <Text style={styles.empty}>{t("matchResults.empty")}</Text>
           }
           renderItem={({ item: { trip, match } }) => (
             <Pressable
@@ -235,14 +250,23 @@ export default function MatchResults() {
               </Text>
               <Text style={styles.meta}>
                 {formatDateTime(trip.departureAt)} ·{" "}
-                {trip.seatsLeft ?? trip.seats} of {trip.seats} seats left
+                {t("matchResults.label.seats_left", {
+                  remaining: trip.seatsLeft ?? trip.seats,
+                  total: trip.seats,
+                })}
               </Text>
               <Text style={styles.meta}>
-                {formatPrice(trip.priceCents, trip.currency)} per seat
+                {formatPrice(trip.priceCents, trip.currency)}{" "}
+                {t("matchResults.label.per_seat")}
               </Text>
               <Text style={styles.meta}>
-                Pickup {match.pickupOffKm.toFixed(1)} km from route · Ride about{" "}
-                {Math.round(match.rideKm)} km
+                {t("matchResults.label.pickup_distance", {
+                  distance: match.pickupOffKm.toFixed(1),
+                })}{" "}
+                ·{" "}
+                {t("matchResults.label.ride_distance", {
+                  distance: Math.round(match.rideKm),
+                })}
               </Text>
               <Pressable
                 style={[
@@ -258,12 +282,12 @@ export default function MatchResults() {
                 onPress={() => onRequest(trip)}
               >
                 {requestingId === trip.id ? (
-                  <ActivityIndicator color={t.onPrimary} />
+                  <ActivityIndicator color={s.onPrimary} />
                 ) : (
                   <Text style={styles.buttonText}>
                     {(trip.seatsLeft ?? trip.seats) < 1
-                      ? "Full"
-                      : "Request ride"}
+                      ? t("matchResults.button.full")
+                      : t("matchResults.button.request_ride")}
                   </Text>
                 )}
               </Pressable>
