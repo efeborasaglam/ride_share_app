@@ -16,11 +16,15 @@ import { formatDateTime } from "../../utils/format";
 import { useTheme, useThemedStyles } from "../../theme";
 import { useTranslation } from "react-i18next";
 
-const ANSWERED = {
-  ACCEPTED: "You accepted this request.",
-  DECLINED: "You declined this request.",
-  CANCELLED: "The passenger cancelled this request.",
-  CANCELLED_BY_DRIVER: "You cancelled this trip.",
+const getAnsweredText = (status) => {
+  const statusKeys = {
+    ACCEPTED: "requestDetails.status.accepted",
+    DECLINED: "requestDetails.status.declined",
+    CANCELLED: "requestDetails.status.cancelled",
+    CANCELLED_BY_DRIVER: "requestDetails.status.cancelled_by_driver",
+  };
+
+  return statusKeys[status] ? t(statusKeys[status]) : status;
 };
 
 const client = generateClient();
@@ -93,8 +97,8 @@ export default function RequestDetails() {
     } catch (e) {
       console.log("RESPOND ERROR:", e.errors ?? e);
       Alert.alert(
-        "Could not update",
-        e.errors?.[0]?.message ?? "Please try again.",
+        t("requestDetails.alert.update_title"),
+        e.errors?.[0]?.message ?? t("requestDetails.fallback.try_again"),
       );
     } finally {
       setBusy(false);
@@ -103,14 +107,26 @@ export default function RequestDetails() {
 
   const respond = (accept) => {
     Alert.alert(
-      accept ? "Accept this passenger?" : "Decline this request?",
       accept
-        ? `${request.passengerName ?? "The passenger"} will see that you accepted.`
-        : "The passenger will see that the request was declined.",
+        ? t("requestDetails.alert.accept_title")
+        : t("requestDetails.alert.decline_title"),
+
+      accept
+        ? t("requestDetails.alert.accept_message", {
+            passenger:
+              request.passengerName ?? t("requestDetails.fallback.passenger"),
+          })
+        : t("requestDetails.alert.decline_message"),
+
       [
-        { text: "Cancel", style: "cancel" },
         {
-          text: accept ? "Accept" : "Decline",
+          text: t("requestDetails.button.cancel"),
+          style: "cancel",
+        },
+        {
+          text: accept
+            ? t("requestDetails.button.accept")
+            : t("requestDetails.button.decline"),
           style: accept ? "default" : "destructive",
           onPress: () => send(accept),
         },
@@ -139,30 +155,53 @@ export default function RequestDetails() {
               strokeWidth={4}
             />
           )}
-          <Marker coordinate={pickup} title="Pickup" pinColor="green" />
-          <Marker coordinate={dropoff} title="Drop-off" />
+          <Marker
+            coordinate={pickup}
+            title={t("requestDetails.marker.pickup")}
+            pinColor="green"
+          />{" "}
+          <Marker
+            coordinate={dropoff}
+            title={t("requestDetails.marker.dropoff")}
+          />{" "}
         </MapView>
         <Pressable style={styles.back} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>{t("requestDetails.button.back")}</Text>
         </Pressable>
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.name}>{request.passengerName ?? "Passenger"}</Text>
+        <Text style={styles.name}>
+          {request.passengerName ?? t("requestDetails.fallback.passenger")}
+        </Text>
+
         <Text style={styles.meta}>
           {request.tripOriginName} → {request.tripDestName}
         </Text>
+
         <Text style={styles.meta}>{formatDateTime(request.departureAt)}</Text>
+
         <Text style={styles.line} numberOfLines={2}>
-          Pickup: {request.pickupName}
+          {t("requestDetails.label.pickup", {
+            location: request.pickupName,
+          })}
         </Text>
+
         <Text style={styles.line} numberOfLines={2}>
-          Drop-off: {request.dropoffName}
+          {t("requestDetails.label.dropoff", {
+            location: request.dropoffName,
+          })}
         </Text>
+
         {match && (
           <Text style={styles.line}>
-            Pickup is {match.pickupOffKm.toFixed(1)} km from your route · Ride
-            about {Math.round(match.rideKm)} km
+            {t("requestDetails.label.pickup_distance", {
+              distance: match.pickupOffKm.toFixed(1),
+            })}{" "}
+            ·{" "}
+            {t("requestDetails.label.ride_distance", {
+              distance: Math.round(match.rideKm),
+            })}
           </Text>
         )}
 
@@ -173,8 +212,11 @@ export default function RequestDetails() {
               disabled={busy}
               onPress={() => respond(false)}
             >
-              <Text style={styles.declineText}>Decline</Text>
+              <Text style={styles.declineText}>
+                {t("requestDetails.button.decline")}
+              </Text>
             </Pressable>
+
             <Pressable
               style={[styles.accept, busy && { opacity: 0.4 }]}
               disabled={busy}
@@ -183,27 +225,34 @@ export default function RequestDetails() {
               {busy ? (
                 <ActivityIndicator color={s.onPrimary} />
               ) : (
-                <Text style={styles.acceptText}>Accept</Text>
+                <Text style={styles.acceptText}>
+                  {t("requestDetails.button.accept")}
+                </Text>
               )}
             </Pressable>
           </View>
         ) : (
           <View>
             <Text style={styles.answered}>
-              {ANSWERED[request.status] ?? request.status}
+              {getAnsweredText(request.status)}
             </Text>
+
             {request.status === "ACCEPTED" && (
               <Pressable
                 style={styles.chatBtn}
                 onPress={() =>
                   navigation.navigate("Chat", {
                     requestId: request.id,
-                    title: request.passengerName ?? "Passenger",
+                    title:
+                      request.passengerName ??
+                      t("requestDetails.fallback.passenger"),
                     subtitle: `${request.tripOriginName} → ${request.tripDestName}`,
                   })
                 }
               >
-                <Text style={styles.chatBtnText}>Message passenger</Text>
+                <Text style={styles.chatBtnText}>
+                  {t("requestDetails.button.message_passenger")}
+                </Text>
               </Pressable>
             )}
           </View>
